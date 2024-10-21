@@ -6,7 +6,6 @@ import java.util.ArrayList;
 public class SokoBot {
 
   public String solveSokobanPuzzle(int width, int height, char[][] mapData, char[][] itemsData) {
-    
     // where all of the states will be added
     ArrayList<State> statesList = new ArrayList<>();
     // for making goal checking easier
@@ -15,7 +14,6 @@ public class SokoBot {
     StringBuilder path = new StringBuilder();
     int input;
 
-    
     // Find the initial player position
     Coordinate initialPosition = null;
     for (int i = 0; i < height; i++) {
@@ -42,7 +40,6 @@ public class SokoBot {
     // Create the initial state
     State initialState = new State(mapData, itemsData, initialPosition, width, height, goalCoordinates);
     statesList.add(initialState);
-    //return "ddrdlrruul" for plain.txt map
 
     // Input loop: keep generating states until a goal state is found
     do {
@@ -72,12 +69,11 @@ public class SokoBot {
 
           // Add the new state to the statesList for further exploration
           statesList.add(newState);
-          Heuristic.sortNonDecreasing(statesList); //HEURISTIC
         }
       } else {
         System.out.println("Invalid index. Please try again.");
       }
-      
+
     } while (true);
 
     return "lrlrlr";

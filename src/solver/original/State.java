@@ -11,8 +11,7 @@ public class State {
     private Coordinate playerPosition;
     private int goals;
     // to be calculated
-    private double heuristicValue = 0.0; //HEURISTIC
-    //private ArrayList<Coordinate> goalCoordinates; //HEURISTIC
+    private double heuristicValue = 0.0;
     private int width;
     private int height;
     // keeps track of the paths
@@ -38,7 +37,6 @@ public class State {
         this.height = height;
         this.path = new StringBuilder();
         this.goals = countGoals(goalCoordinates);
-        this.heuristicValue = Heuristic.calcManDist(mapData, itemsData, width, height, goalCoordinates, this.goals); //HEURISTIC
     }
 
     public Coordinate getPlayerPosition() {
@@ -52,15 +50,6 @@ public class State {
     public void setPath(StringBuilder newPath) {
         this.path = newPath;
     }
-
-    //HEURISTIC
-    public double getHeuristicValue() {
-        return heuristicValue;
-    }
-    public void setHeuristicValue(double heuristicValue) {
-        this.heuristicValue = heuristicValue;
-    }
-
 
     // note how this gets goalCoordinates, they were preloaded in the main
     // so that counting goals doesn't become n^2 by checking every cell
