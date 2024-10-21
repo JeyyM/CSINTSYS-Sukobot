@@ -13,6 +13,7 @@ public class State {
     private int goals;
     private int width;
     private int height;
+    private boolean visited = false;
     // keeps track of the paths
     private StringBuilder path;
     // to be calculated
@@ -49,6 +50,14 @@ public class State {
 
     public void setPath(StringBuilder newPath) {
         this.path = newPath;
+    }
+
+    public boolean getVisited() {
+        return visited;
+    }
+
+    public void setVisited() {
+        this.visited = true;
     }
 
     // Set initial box coordinates

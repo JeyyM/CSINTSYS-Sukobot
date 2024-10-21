@@ -3,6 +3,12 @@ package solver;
 import java.util.Scanner;
 import java.util.ArrayList;
 
+// random selector
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+
+
 public class SokoBot {
 
   public String solveSokobanPuzzle(int width, int height, char[][] mapData, char[][] itemsData) {
@@ -63,60 +69,69 @@ public class SokoBot {
       if (input == -1) break;
 
       if (input >= 0 && input < statesList.size()) {
-        State selectedState = statesList.get(input);
-        ArrayList<State> newStates = selectedState.createStates(goalCoordinates);
+        if (statesList.get(input).getVisited() == false) {
 
-        // Check if any of the new states is a goal state
-        for (State newState : newStates) {
-          // If all goals are filled, return the path
-          if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
-            System.out.println("Goal state reached!");
-            return newState.getPath();
-          }
+          State selectedState = statesList.get(input);
+          selectedState.setVisited();
 
-          boolean existing = false;
+          ArrayList<State> newStates = selectedState.createStates(goalCoordinates);
 
-          // Check if the new state is a duplicate of any existing state
-          for (State existingState : statesList) {
-            // Get player positions
-            Coordinate existingPosition = existingState.getPlayerPosition();
-            Coordinate newPosition = newState.getPlayerPosition();
+          // Check if any of the new states is a goal state
+          for (State newState : newStates) {
+            // If all goals are filled, return the path
+            if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
+              System.out.println("Goal state reached!");
+              return newState.getPath();
+            }
 
-            // Check if the player positions are the same using x and y values
-            if (existingPosition.x == newPosition.x && existingPosition.y == newPosition.y) {
-              boolean sameBoxes = true;
+            boolean existing = false;
 
-              // Compare each box coordinate in the existing with the new state
-              for (int i = 0; i < existingState.getBoxCoordinates().size(); i++) {
-                Coordinate box = existingState.getBoxCoordinates().get(i);
-                Coordinate newBox = newState.getBoxCoordinates().get(i);
+            // Check if the new state is a duplicate of any existing state
+            for (State existingState : statesList) {
+              // Get player positions
+              Coordinate existingPosition = existingState.getPlayerPosition();
+              Coordinate newPosition = newState.getPlayerPosition();
 
-                if (box.x != newBox.x || box.y != newBox.y) {
-                  sameBoxes = false;
+              // Check if the player positions are the same using x and y values
+              if (existingPosition.x == newPosition.x && existingPosition.y == newPosition.y) {
+                boolean sameBoxes = true;
+
+                // Compare each box coordinate in the existing with the new state
+                for (int i = 0; i < existingState.getBoxCoordinates().size(); i++) {
+                  Coordinate box = existingState.getBoxCoordinates().get(i);
+                  Coordinate newBox = newState.getBoxCoordinates().get(i);
+
+                  if (box.x != newBox.x || box.y != newBox.y) {
+                    sameBoxes = false;
+                    break;
+                  }
+                }
+
+                // If all boxes match, mark the state as existing
+                if (sameBoxes) {
+                  existing = true;
                   break;
                 }
               }
+            }
 
-              // If all boxes match, mark the state as existing
-              if (sameBoxes) {
-                existing = true;
-                break;
-              }
+            // If not a duplicate, add the new state to the statesList
+            if (!existing) {
+              statesList.add(newState);
             }
           }
-
-          // If not a duplicate, add the new state to the statesList
-          if (!existing) {
-            statesList.add(newState);
-          }
+        } else {
+          System.out.println("State already visited.");
         }
-
       } else {
         System.out.println("Invalid index. Please try again.");
       }
 
     } while (true);
 
-    return "No solution found.";
+    return "lrlrlrlrlr";
   }
 }
+
+// javac src/gui/*.java src/main/*.java src/reader/*.java src/solver/*.java -d out/ -cp out
+// java -classpath out main.Driver plains2 bot
