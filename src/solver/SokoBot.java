@@ -6,16 +6,16 @@ import java.util.ArrayList;
 public class SokoBot {
 
   public String solveSokobanPuzzle(int width, int height, char[][] mapData, char[][] itemsData) {
-    
     // where all of the states will be added
     ArrayList<State> statesList = new ArrayList<>();
     // for making goal checking easier
+    ArrayList<Coordinate> boxCoordinates = new ArrayList<>();
     ArrayList<Coordinate> goalCoordinates = new ArrayList<>();
+
     Scanner scanner = new Scanner(System.in);
     StringBuilder path = new StringBuilder();
     int input;
 
-    
     // Find the initial player position
     Coordinate initialPosition = null;
     for (int i = 0; i < height; i++) {
@@ -30,19 +30,21 @@ public class SokoBot {
       }
     }
 
-    // Store goal positions for easier searching
+    // Store goal and box positions for easier searching
     for (int i = 0; i < height; i++) {
       for (int j = 0; j < width; j++) {
         if (mapData[i][j] == '.') {
           goalCoordinates.add(new Coordinate(i, j));
         }
+        if (itemsData[i][j] == '$') {
+          boxCoordinates.add(new Coordinate(i, j));
+        }
       }
     }
 
     // Create the initial state
-    State initialState = new State(mapData, itemsData, initialPosition, width, height, goalCoordinates);
+    State initialState = new State(mapData, itemsData, initialPosition, width, height, goalCoordinates, boxCoordinates);
     statesList.add(initialState);
-    //return "ddrdlrruul" for plain.txt map
 
     // Input loop: keep generating states until a goal state is found
     do {
@@ -72,12 +74,11 @@ public class SokoBot {
 
           // Add the new state to the statesList for further exploration
           statesList.add(newState);
-          Heuristic.sortNonDecreasing(statesList); //HEURISTIC
         }
       } else {
         System.out.println("Invalid index. Please try again.");
       }
-      
+
     } while (true);
 
     return "lrlrlr";
