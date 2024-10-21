@@ -130,6 +130,9 @@ public class State {
                 // Check if the new box position is valid
                 if (mapData[boxNewY][boxNewX] == '#' || itemsData[boxNewY][boxNewX] != ' ') continue;
 
+                // Deadlock check
+                if (deadlockCheck(boxNewX, boxNewY, goalCoordinates, mapData, itemsData)) continue;
+
                 // Create a new state with the box and player moved
                 char[][] newItemsData = copyMap(itemsData);
 
@@ -200,4 +203,39 @@ public class State {
         }
         return copy;
     }
+
+    public boolean deadlockCheck(int boxX, int boxY, ArrayList<Coordinate> goalCoordinates, char[][] mapData, char[][] itemsData) {
+        // if it is a goal, its cool
+        for (Coordinate goal : goalCoordinates) {
+            if (goal.x == boxX && goal.y == boxY) {
+                return false;
+            }
+        }
+
+        boolean[] wallPresence = new boolean[DIRECTIONS.length];
+
+        // check all directions
+        for (int i = 0; i < DIRECTIONS.length; i++) {
+            int[] direction = DIRECTIONS[i];
+            int newX = boxX + direction[0];
+            int newY = boxY + direction[1];
+
+            if (mapData[newY][newX] == '#') {
+                wallPresence[i] = true;
+            }
+        }
+
+        // vertical and horizontal, note order is [u, d, l, r]
+        boolean upLeftCorner = wallPresence[0] && wallPresence[2];
+        boolean upRightCorner = wallPresence[0] && wallPresence[3];
+        boolean downLeftCorner = wallPresence[1] && wallPresence[2];
+        boolean downRightCorner = wallPresence[1] && wallPresence[3];
+
+        if (upLeftCorner || upRightCorner || downLeftCorner || downRightCorner) {
+            return true;
+        }
+
+        return false;
+    }
+
 }

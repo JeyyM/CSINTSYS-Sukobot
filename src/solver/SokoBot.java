@@ -120,5 +120,3 @@ public class SokoBot {
     return "No solution found.";
   }
 }
-
-// hi
