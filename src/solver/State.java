@@ -6,10 +6,14 @@ public class State {
     private char[][] itemsData;
     private char[][] mapData;
 
+    private Heuristic calculator = new Heuristic();
+
     // player position is kept as a coordinate so that getting the position for the states is faster
     // also this can be used to check for copies of the same map
     private Coordinate playerPosition;
     private ArrayList<Coordinate> boxCoordinates;
+    private ArrayList<Coordinate> goalCoordinates;
+
     private int goals;
     private int width;
     private int height;
@@ -47,7 +51,6 @@ public class State {
     public String getPath() {
         return path.toString();
     }
-
     public void setPath(StringBuilder newPath) {
         this.path = newPath;
     }
@@ -55,9 +58,16 @@ public class State {
     public boolean getVisited() {
         return visited;
     }
-
     public void setVisited() {
         this.visited = true;
+    }
+
+    //HEURISTIC
+    public double getHeuristicValue() {
+        return heuristicValue;
+    }
+    public void setHeuristicValue(double heuristicValue) {
+        this.heuristicValue = heuristicValue;
     }
 
     // Set initial box coordinates
@@ -65,6 +75,13 @@ public class State {
         this.boxCoordinates = new ArrayList<>();
         for (Coordinate coord : initialBoxCoordinates) {
             this.boxCoordinates.add(new Coordinate(coord.x, coord.y));
+        }
+    }
+
+    public void setGoalCoordinates(ArrayList<Coordinate> initialGoalCoordinates) {
+        this.goalCoordinates = new ArrayList<>();
+        for (Coordinate coord : initialGoalCoordinates) {
+            this.goalCoordinates.add(new Coordinate(coord.x, coord.y));
         }
     }
 
@@ -83,6 +100,10 @@ public class State {
         return goalSpots;
     }
 
+    public int getGoals(){
+        return this.goals;
+    }
+
     // where new states are made, it returns an ArrayList which will later be checked for a winning path
     // before being added to the statesList
     public void printState() {
@@ -90,6 +111,7 @@ public class State {
         System.out.printf("Player position: (%d, %d)\n", playerPosition.x, playerPosition.y);
         System.out.printf("Goal count: %d\n", goals);
         System.out.println("Box Positions: " + this.boxCoordinates);
+        System.out.println("Goal Positions: " + this.goalCoordinates);
         System.out.printf("Heuristic value: %.2f\n", heuristicValue);
 
         // Print map and item data side by side for better visualization
@@ -172,6 +194,7 @@ public class State {
                 // Create a new state with the updated boxCoordinates
                 State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates);
                 newState.setBoxCoordinates(newBoxCoordinates);
+                newState.setGoalCoordinates(this.goalCoordinates);
 
                 // Append the direction to the path
                 newState.setPath(new StringBuilder(this.getPath()).append(DIRECTION_CHARS[i]));
@@ -194,6 +217,11 @@ public class State {
                 // Create a new state with the same boxCoordinates
                 State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates);
                 newState.setBoxCoordinates(newBoxCoordinates);
+                newState.setGoalCoordinates(this.goalCoordinates);
+
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, newState.countGoals(goalCoordinates));
+
+                newState.setHeuristicValue(heuristicValue);
 
                 // Append the direction to the path
                 newState.setPath(new StringBuilder(this.getPath()).append(DIRECTION_CHARS[i]));

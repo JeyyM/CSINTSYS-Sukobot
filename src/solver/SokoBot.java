@@ -13,6 +13,7 @@ public class SokoBot {
 
   public String solveSokobanPuzzle(int width, int height, char[][] mapData, char[][] itemsData) {
     Scanner scanner = new Scanner(System.in);
+    Heuristic calculator = new Heuristic();
 
     // Where all the states will be added
     ArrayList<State> statesList = new ArrayList<>();
@@ -52,6 +53,10 @@ public class SokoBot {
     // Create the initial state
     State initialState = new State(mapData, itemsData, initialPosition, width, height, goalCoordinates);
     initialState.setBoxCoordinates(boxCoordinates);
+    initialState.setGoalCoordinates(goalCoordinates);
+
+//    initialState.setHeuristicValue(calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, newState.countGoals(goalCoordinates)));
+
     statesList.add(initialState);
 
     // Input loop: keep generating states until a goal state is found
@@ -128,6 +133,99 @@ public class SokoBot {
       }
 
     } while (true);
+
+    // Fooling around with a random selector
+//    Random random = new Random();
+//    Set<Integer> visitedIndices = new HashSet<>();
+//
+//    do {
+//      // Print current states with their index
+////      System.out.println("Current States:");
+////      for (int i = 0; i < statesList.size(); i++) {
+////        System.out.printf("Index %d: =============================================\n", i);
+////        statesList.get(i).printState();
+////      }
+//
+//      // Generate a random index that hasn't been visited yet
+//      int randomIndex = random.nextInt(statesList.size());
+//
+//      // Ensure the random index hasn't been visited
+//      while (visitedIndices.contains(randomIndex)) {
+//        randomIndex = random.nextInt(statesList.size());
+//      }
+//
+//      // Mark the random index as visited
+//      visitedIndices.add(randomIndex);
+//
+//      // Check if the random index is within bounds
+//      if (randomIndex >= 0 && randomIndex < statesList.size()) {
+//        // Check if the state has already been visited
+//        if (!statesList.get(randomIndex).getVisited()) {
+//          State selectedState = statesList.get(randomIndex);
+//          selectedState.setVisited();
+//          selectedState.printState();
+//
+//          System.out.printf("SELECTED STATE: %d\n", randomIndex);
+//
+//          ArrayList<State> newStates = selectedState.createStates(goalCoordinates);
+//
+//          // Check if any of the new states is a goal state
+//          for (State newState : newStates) {
+//            // If all goals are filled, return the path
+//            if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
+//              System.out.println("Goal state reached!");
+//              return newState.getPath();
+//            }
+//
+//            boolean existing = false;
+//
+//            // Check if the new state is a duplicate of any existing state
+//            for (State existingState : statesList) {
+//              // Get player positions
+//              Coordinate existingPosition = existingState.getPlayerPosition();
+//              Coordinate newPosition = newState.getPlayerPosition();
+//
+//              // Check if the player positions are the same using x and y values
+//              if (existingPosition.x == newPosition.x && existingPosition.y == newPosition.y) {
+//                boolean sameBoxes = true;
+//
+//                // Compare each box coordinate in the existing with the new state
+//                for (int i = 0; i < existingState.getBoxCoordinates().size(); i++) {
+//                  Coordinate box = existingState.getBoxCoordinates().get(i);
+//                  Coordinate newBox = newState.getBoxCoordinates().get(i);
+//
+//                  if (box.x != newBox.x || box.y != newBox.y) {
+//                    sameBoxes = false;
+//                    break;
+//                  }
+//                }
+//
+//                // If all boxes match, mark the state as existing
+//                if (sameBoxes) {
+//                  existing = true;
+//                  break;
+//                }
+//              }
+//            }
+//
+//            // If not a duplicate, add the new state to the statesList
+//            if (!existing) {
+//              statesList.add(newState);
+//            }
+//          }
+//        } else {
+//          // Log when the state is already visited
+//          System.out.printf("STATE %d ALREADY VISITED\n", randomIndex);
+//        }
+//      }
+//
+//      // If all indices have been visited, break the loop
+//      if (visitedIndices.size() == statesList.size()) {
+//        System.out.println("All states have been visited.");
+//        break;
+//      }
+//
+//    } while (true);
 
     return "lrlrlrlrlr";
   }
