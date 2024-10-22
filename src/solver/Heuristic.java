@@ -74,6 +74,13 @@ public class Heuristic implements Comparator<State> {
         });
     }
 
+    /**
+     * compare function for priority queue
+     * currently compares heuristic value only
+     * -1 means it gets put in front
+     * 1 means it gets put in the back
+     * idk what 0 means rn
+     */
     public int compare(State s1, State s2) {
         if (s1.getHeuristicValue() < s2.getHeuristicValue())
             return -1;
