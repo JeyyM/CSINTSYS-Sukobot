@@ -101,7 +101,6 @@ public class SokoBot {
             // Get player positions
             Coordinate existingPosition = existingState.getPlayerPosition();
             Coordinate newPosition = newState.getPlayerPosition();
-
             // Check if the player positions are the same using x and y values
             if (existingPosition.x == newPosition.x && existingPosition.y == newPosition.y) {
               boolean sameBoxes = true;
