@@ -196,6 +196,7 @@ public class State {
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
                 newState.setHeuristicValue(heuristicValue);
+                // Test for git change
 
                 // Append the direction to the path
                 newState.setPath(new StringBuilder(this.getPath()).append(DIRECTION_CHARS[i]));
