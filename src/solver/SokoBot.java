@@ -15,6 +15,7 @@ public class SokoBot {
     Scanner scanner = new Scanner(System.in);
     Heuristic calculator = new Heuristic();
     int input = 0;
+    int totalState = 0;
 
     // Where all the states will be added
     ArrayList<State> statesList = new ArrayList<>();
@@ -54,7 +55,7 @@ public class SokoBot {
     initialState.setBoxCoordinates(boxCoordinates);
     initialState.setGoalCoordinates(goalCoordinates);
 
-    initialState.setHeuristicValue(calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates)));
+    initialState.setHeuristicValue(calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates), initialState.getPath()));
 
     statesList.add(initialState);
 
@@ -80,6 +81,7 @@ public class SokoBot {
         selectedState.setVisited();
 
         System.out.printf("SELECTED STATE: %d\n", input);
+        totalState++;
 
         ArrayList<State> newStates = selectedState.createStates(goalCoordinates);
 
@@ -88,6 +90,7 @@ public class SokoBot {
           // If all goals are filled, return the path
           if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
             System.out.println("Goal state reached!");
+            System.out.println("States Visited: " + totalState);
             return newState.getPath();
           }
 

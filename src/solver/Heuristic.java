@@ -8,7 +8,7 @@ import java.util.Comparator;
 
 public class Heuristic {
     //Calculate sum of Manhattan Distances between each crate to its NEAREST goal spot
-    public static double calcManDist(char[][] mapData, char[][] itemsData, int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, int goals) {
+    public static double calcManDist(char[][] mapData, char[][] itemsData, int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, int goals, String path) {
         double heuristicValue = 0;
 
         //Already in a goal state
@@ -37,8 +37,12 @@ public class Heuristic {
                     if(minManDist == 1)
                         break;
                 }
-                heuristicValue += minManDist;
-                heuristicValue += (goals * 0.1);
+
+//                heuristicValue += minManDist;
+                heuristicValue += minManDist * 20;
+
+                heuristicValue += (goals * 0.5);
+                heuristicValue += path.length() * 0.001;
             }
         }
 

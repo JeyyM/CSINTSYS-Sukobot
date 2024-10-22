@@ -196,7 +196,7 @@ public class State {
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
 
-                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, newBoxCoordinates, newState.countGoals(goalCoordinates));
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, newBoxCoordinates, newState.countGoals(goalCoordinates), newState.getPath());
 
                 newState.setHeuristicValue(heuristicValue);
 
@@ -223,7 +223,7 @@ public class State {
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
 
-                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, newState.countGoals(goalCoordinates));
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, newState.countGoals(goalCoordinates), newState.getPath());
 
                 newState.setHeuristicValue(heuristicValue);
 
