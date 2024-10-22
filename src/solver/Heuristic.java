@@ -3,8 +3,10 @@ package solver;
 import java.util.ArrayList;
 import java.lang.Math;
 
+import java.util.Collections;
+import java.util.Comparator;
+
 public class Heuristic {
-//TEST COMMENT FOR GIT EDITED
     //Calculate sum of Manhattan Distances between each crate to its NEAREST goal spot
     public static double calcManDist(char[][] mapData, char[][] itemsData, int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, int goals) {
         double heuristicValue = 0;
@@ -43,23 +45,32 @@ public class Heuristic {
     }
 
     //Sort heuristic values of ArrayList of states using bubble sort
-    public static void sortNonDecreasing(ArrayList<State> stateList) {
-        State temp;
-        boolean swapped;
+//    public static void sortNonDecreasing(ArrayList<State> stateList) {
+//        State temp;
+//        boolean swapped;
+//
+//        for(int i = 0; i < stateList.size() - 1; i++) {
+//            swapped = false;
+//            for(int j = 0; j < stateList.size() - i - 1; j++) {
+//                if(stateList.get(j).getHeuristicValue() > stateList.get(j + 1).getHeuristicValue()) {
+//                    temp = stateList.get(j);
+//                    stateList.set(j, stateList.get(j + 1));
+//                    stateList.set(j + 1, temp);
+//                    swapped = true;
+//                }
+//            }
+//
+//            if(swapped == false)
+//                break;
+//        }
+//    }
 
-        for(int i = 0; i < stateList.size() - 1; i++) {
-            swapped = false;
-            for(int j = 0; j < stateList.size() - i - 1; j++) {
-                if(stateList.get(j).getHeuristicValue() > stateList.get(j + 1).getHeuristicValue()) {
-                    temp = stateList.get(j);
-                    stateList.set(j, stateList.get(j + 1));
-                    stateList.set(j + 1, temp);
-                    swapped = true;
-                }
+    public static void sortDescending(ArrayList<State> stateList) {
+        Collections.sort(stateList, new Comparator<State>() {
+            @Override
+            public int compare(State s1, State s2) {
+                return Double.compare(s2.getHeuristicValue(), s1.getHeuristicValue());
             }
-
-            if(swapped == false)
-                break;
-        }
+        });
     }
 }
