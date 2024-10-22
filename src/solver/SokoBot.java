@@ -62,7 +62,7 @@ public class SokoBot {
 
     // USES LAST INDEX
     do {
-      input = statesList.size()
+      input = statesList.size();
       // Automatic selection: Start from index 0 and move up if the state is visited
       while (input >= 0 && statesList.get(input).getVisited()) {
         input--;  // Move to the next index if already visited
