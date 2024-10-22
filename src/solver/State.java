@@ -195,6 +195,9 @@ public class State {
                 State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
+
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, newBoxCoordinates, newState.countGoals(goalCoordinates));
+
                 newState.setHeuristicValue(heuristicValue);
 
                 // Append the direction to the path

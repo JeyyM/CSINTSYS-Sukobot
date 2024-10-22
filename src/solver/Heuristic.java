@@ -38,6 +38,7 @@ public class Heuristic {
                         break;
                 }
                 heuristicValue += minManDist;
+                heuristicValue += (goals * 0.1);
             }
         }
 
