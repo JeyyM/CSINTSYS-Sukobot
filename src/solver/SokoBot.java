@@ -59,6 +59,8 @@ public class SokoBot {
     statesList.add(initialState);
 
     // USES LAST INDEX
+
+    // new commit
     do {
       input = statesList.size() - 1;
       // Automatic selection: Start from index 0 and move up if the state is visited
