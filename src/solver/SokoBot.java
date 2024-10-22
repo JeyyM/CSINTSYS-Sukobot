@@ -2,6 +2,7 @@ package solver;
 
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.PriorityQueue;
 
 // random selector
 import java.util.HashSet;
@@ -18,6 +19,7 @@ public class SokoBot {
 
     // Where all the states will be added
     ArrayList<State> statesList = new ArrayList<>();
+    PriorityQueue<State> statequeue = new PriorityQueue<State>(30000, new Heuristic());
 
     // For making duplicate checking easier
     ArrayList<Coordinate> boxCoordinates = new ArrayList<>();
@@ -57,11 +59,12 @@ public class SokoBot {
     initialState.setHeuristicValue(calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates)));
 
     statesList.add(initialState);
+    statequeue.add(initialState);
 
     // USES LAST INDEX
 
     // new commit
-    do {
+    /*do {
       input = statesList.size() - 1;
       // Automatic selection: Start from index 0 and move up if the state is visited
       while (input >= 0 && statesList.get(input).getVisited()) {
@@ -136,7 +139,61 @@ public class SokoBot {
         System.out.println("State already visited.");
       }
 
-    } while (true);
+    } while (true); */
+
+    while(!statequeue.isEmpty()) {
+      State currState = statequeue.poll();
+      // System.out.println("SELECTED STATE: " + currState.toString());
+      // System.out.println(statequeue);
+
+      ArrayList<State> newStates = currState.createStates(goalCoordinates);
+
+      // Check if any of the new states is a goal state
+      for (State newState : newStates) {
+        // If all goals are filled, return the path
+        if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
+          System.out.println("Goal state reached!");
+          return newState.getPath();
+        }
+
+        boolean existing = false;
+
+        // Check if the new state is a duplicate of any existing state
+        for (State existingState : statesList) {
+          // Get player positions
+          Coordinate existingPosition = existingState.getPlayerPosition();
+          Coordinate newPosition = newState.getPlayerPosition();
+
+          // Check if the player positions are the same using x and y values
+          if (existingPosition.x == newPosition.x && existingPosition.y == newPosition.y) {
+            boolean sameBoxes = true;
+
+            // Compare each box coordinate in the existing with the new state
+            for (int i = 0; i < existingState.getBoxCoordinates().size(); i++) {
+              Coordinate box = existingState.getBoxCoordinates().get(i);
+              Coordinate newBox = newState.getBoxCoordinates().get(i);
+
+              if (box.x != newBox.x || box.y != newBox.y) {
+                sameBoxes = false;
+                break;
+              }
+            }
+
+            // If all boxes match, mark the state as existing
+            if (sameBoxes) {
+              existing = true;
+              break;
+            }
+          }
+        }
+
+        // If not a duplicate, add the new state to the statesList
+        if (!existing) {
+          statequeue.add(newState);
+          statesList.add(newState);
+        }
+      }
+    }
 
     // MANUAL INPUTTING SECTION
 //    do {

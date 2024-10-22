@@ -6,7 +6,7 @@ import java.lang.Math;
 import java.util.Collections;
 import java.util.Comparator;
 
-public class Heuristic {
+public class Heuristic implements Comparator<State> {
     //Calculate sum of Manhattan Distances between each crate to its NEAREST goal spot
     public static double calcManDist(char[][] mapData, char[][] itemsData, int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, int goals) {
         double heuristicValue = 0;
@@ -72,5 +72,13 @@ public class Heuristic {
                 return Double.compare(s2.getHeuristicValue(), s1.getHeuristicValue());
             }
         });
+    }
+
+    public int compare(State s1, State s2) {
+        if (s1.getHeuristicValue() < s2.getHeuristicValue())
+            return -1;
+        else if (s1.getHeuristicValue() > s2.getHeuristicValue())
+            return 1;
+        return 0;
     }
 }

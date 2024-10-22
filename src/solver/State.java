@@ -198,6 +198,10 @@ public class State {
                 newState.setHeuristicValue(heuristicValue);
                 // Test for git change AAAAAAAAAAAAAAAA
 
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, newState.countGoals(goalCoordinates));
+
+                newState.setHeuristicValue(heuristicValue);
+
                 // Append the direction to the path
                 newState.setPath(new StringBuilder(this.getPath()).append(DIRECTION_CHARS[i]));
                 validStates.add(newState);
@@ -275,6 +279,21 @@ public class State {
         }
 
         return false;
+    }
+
+    @Override
+    public String toString() {
+        String player = playerPosition.toString();
+        String box = "| ";
+
+        for(Coordinate b : boxCoordinates) {
+            box = box + b.toString() + " ";
+        }
+        player = player + box;
+        double d = getHeuristicValue();
+        player = player + " " + d;
+
+        return player;
     }
 
 }
