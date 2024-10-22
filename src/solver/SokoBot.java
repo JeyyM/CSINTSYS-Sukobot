@@ -22,7 +22,7 @@ public class SokoBot {
     ArrayList<Coordinate> boxCoordinates = new ArrayList<>();
     // For making goal checking easier
     ArrayList<Coordinate> goalCoordinates = new ArrayList<>();
-    int input;
+    int input = 0;
 
     // Find the initial player position
     Coordinate initialPosition = null;
@@ -55,86 +55,177 @@ public class SokoBot {
     initialState.setBoxCoordinates(boxCoordinates);
     initialState.setGoalCoordinates(goalCoordinates);
 
-//    initialState.setHeuristicValue(calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, newState.countGoals(goalCoordinates)));
+    initialState.setHeuristicValue(calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates)));
 
     statesList.add(initialState);
 
     // Input loop: keep generating states until a goal state is found
+
     do {
       // Print current states with their index
-      System.out.println("Current States:");
-      for (int i = 0; i < statesList.size(); i++) {
-        System.out.printf("Index %d: =============================================\n", i);
-        statesList.get(i).printState();
+//      System.out.println("Current States:");
+//      for (int i = 0; i < statesList.size(); i++) {
+//        System.out.printf("Index %d: =============================================\n", i);
+//        statesList.get(i).printState();
+//      }
+
+      // Automatic selection: Start from index 0 and move up if the state is visited
+      while (input < statesList.size() && statesList.get(input).getVisited()) {
+        input++;  // Move to the next index if already visited
       }
 
-      System.out.print("Enter a state index (or -1 to exit): ");
-      input = scanner.nextInt();
+      // Reset input to 0 if we reach the end of the list
+      if (input >= statesList.size()) {
+        input = 0;
+      }
 
-      if (input == -1) break;
+      // Select the current state if it is unvisited and within bounds
+      if (input >= 0 && input < statesList.size() && !statesList.get(input).getVisited()) {
+        State selectedState = statesList.get(input);
+        selectedState.setVisited();
 
-      if (input >= 0 && input < statesList.size()) {
-        if (statesList.get(input).getVisited() == false) {
+        System.out.printf("SELECTED STATE: %d\n", input);
 
-          State selectedState = statesList.get(input);
-          selectedState.setVisited();
+        ArrayList<State> newStates = selectedState.createStates(goalCoordinates);
 
-          ArrayList<State> newStates = selectedState.createStates(goalCoordinates);
+        // Check if any of the new states is a goal state
+        for (State newState : newStates) {
+          // If all goals are filled, return the path
+          if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
+            System.out.println("Goal state reached!");
+            return newState.getPath();
+          }
 
-          // Check if any of the new states is a goal state
-          for (State newState : newStates) {
-            // If all goals are filled, return the path
-            if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
-              System.out.println("Goal state reached!");
-              return newState.getPath();
-            }
+          boolean existing = false;
 
-            boolean existing = false;
+          // Check if the new state is a duplicate of any existing state
+          for (State existingState : statesList) {
+            // Get player positions
+            Coordinate existingPosition = existingState.getPlayerPosition();
+            Coordinate newPosition = newState.getPlayerPosition();
 
-            // Check if the new state is a duplicate of any existing state
-            for (State existingState : statesList) {
-              // Get player positions
-              Coordinate existingPosition = existingState.getPlayerPosition();
-              Coordinate newPosition = newState.getPlayerPosition();
+            // Check if the player positions are the same using x and y values
+            if (existingPosition.x == newPosition.x && existingPosition.y == newPosition.y) {
+              boolean sameBoxes = true;
 
-              // Check if the player positions are the same using x and y values
-              if (existingPosition.x == newPosition.x && existingPosition.y == newPosition.y) {
-                boolean sameBoxes = true;
+              // Compare each box coordinate in the existing with the new state
+              for (int i = 0; i < existingState.getBoxCoordinates().size(); i++) {
+                Coordinate box = existingState.getBoxCoordinates().get(i);
+                Coordinate newBox = newState.getBoxCoordinates().get(i);
 
-                // Compare each box coordinate in the existing with the new state
-                for (int i = 0; i < existingState.getBoxCoordinates().size(); i++) {
-                  Coordinate box = existingState.getBoxCoordinates().get(i);
-                  Coordinate newBox = newState.getBoxCoordinates().get(i);
-
-                  if (box.x != newBox.x || box.y != newBox.y) {
-                    sameBoxes = false;
-                    break;
-                  }
-                }
-
-                // If all boxes match, mark the state as existing
-                if (sameBoxes) {
-                  existing = true;
+                if (box.x != newBox.x || box.y != newBox.y) {
+                  sameBoxes = false;
                   break;
                 }
               }
-            }
 
-            // If not a duplicate, add the new state to the statesList
-            if (!existing) {
-              statesList.add(newState);
+              // If all boxes match, mark the state as existing
+              if (sameBoxes) {
+                existing = true;
+                break;
+              }
             }
           }
-        } else {
-          System.out.println("State already visited.");
+
+          // If not a duplicate, add the new state to the statesList
+          if (!existing) {
+            statesList.add(newState);
+            calculator.sortNonDecreasing(statesList);
+          }
         }
+
+        // Reset the input back to 0 to start from the best state again
+        input = 0;
       } else {
-        System.out.println("Invalid index. Please try again.");
+        // Print message when the state is already visited
+        System.out.println("State already visited.");
+      }
+
+      // Check if all states have been visited
+      if (statesList.stream().allMatch(State::getVisited)) {
+        System.out.println("All states have been visited.");
+        break;
       }
 
     } while (true);
 
-    // Fooling around with a random selector
+//    MANUAL INPUTTING SECTION
+//    do {
+//      // Print current states with their index
+//      System.out.println("Current States:");
+//      for (int i = 0; i < statesList.size(); i++) {
+//        System.out.printf("Index %d: =============================================\n", i);
+//        statesList.get(i).printState();
+//      }
+//
+//      System.out.print("Enter a state index (or -1 to exit): ");
+//      input = scanner.nextInt();
+//
+//      if (input == -1) break;
+//
+//      if (input >= 0 && input < statesList.size()) {
+//        if (statesList.get(input).getVisited() == false) {
+//
+//          State selectedState = statesList.get(input);
+//          selectedState.setVisited();
+//
+//          ArrayList<State> newStates = selectedState.createStates(goalCoordinates);
+//
+//          // Check if any of the new states is a goal state
+//          for (State newState : newStates) {
+//            // If all goals are filled, return the path
+//            if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
+//              System.out.println("Goal state reached!");
+//              return newState.getPath();
+//            }
+//
+//            boolean existing = false;
+//
+//            // Check if the new state is a duplicate of any existing state
+//            for (State existingState : statesList) {
+//              // Get player positions
+//              Coordinate existingPosition = existingState.getPlayerPosition();
+//              Coordinate newPosition = newState.getPlayerPosition();
+//
+//              // Check if the player positions are the same using x and y values
+//              if (existingPosition.x == newPosition.x && existingPosition.y == newPosition.y) {
+//                boolean sameBoxes = true;
+//
+//                // Compare each box coordinate in the existing with the new state
+//                for (int i = 0; i < existingState.getBoxCoordinates().size(); i++) {
+//                  Coordinate box = existingState.getBoxCoordinates().get(i);
+//                  Coordinate newBox = newState.getBoxCoordinates().get(i);
+//
+//                  if (box.x != newBox.x || box.y != newBox.y) {
+//                    sameBoxes = false;
+//                    break;
+//                  }
+//                }
+//
+//                // If all boxes match, mark the state as existing
+//                if (sameBoxes) {
+//                  existing = true;
+//                  break;
+//                }
+//              }
+//            }
+//
+//            // If not a duplicate, add the new state to the statesList
+//            if (!existing) {
+//              statesList.add(newState);
+//              calculator.sortNonDecreasing(statesList);
+//            }
+//          }
+//        } else {
+//          System.out.println("State already visited.");
+//        }
+//      } else {
+//        System.out.println("Invalid index. Please try again.");
+//      }
+//
+//    } while (true);
+
+// RANDOM SELECTION
 //    Random random = new Random();
 //    Set<Integer> visitedIndices = new HashSet<>();
 //

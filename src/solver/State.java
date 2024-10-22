@@ -195,6 +195,7 @@ public class State {
                 State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
+                newState.setHeuristicValue(heuristicValue);
 
                 // Append the direction to the path
                 newState.setPath(new StringBuilder(this.getPath()).append(DIRECTION_CHARS[i]));
