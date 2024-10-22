@@ -60,7 +60,6 @@ public class SokoBot {
     statesList.add(initialState);
 
     // Input loop: keep generating states until a goal state is found
-
     do {
       // Print current states with their index
 //      System.out.println("Current States:");
