@@ -58,11 +58,9 @@ public class SokoBot {
 
     statesList.add(initialState);
 
-    // Input loop: keep generating states until a goal state is found
-
     // USES LAST INDEX
     do {
-      input = statesList.size()
+      input = statesList.size() - 1;
       // Automatic selection: Start from index 0 and move up if the state is visited
       while (input >= 0 && statesList.get(input).getVisited()) {
         input--;  // Move to the next index if already visited
