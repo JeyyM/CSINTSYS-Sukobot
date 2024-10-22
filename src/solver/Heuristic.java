@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.lang.Math;
 
 public class Heuristic {
-
+//TEST COMMENT FOR GIT
     //Calculate sum of Manhattan Distances between each crate to its NEAREST goal spot
     public static double calcManDist(char[][] mapData, char[][] itemsData, int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, int goals) {
         double heuristicValue = 0;
