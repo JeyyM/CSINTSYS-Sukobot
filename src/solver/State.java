@@ -3,12 +3,12 @@ package solver;
 import java.util.ArrayList;
 
 public class State {
+    // One used instance of the map data
     private char[][] mapData = GlobalMap.getMap();
 
     private Heuristic calculator = new Heuristic();
 
-    // player position is kept as a coordinate so that getting the position for the states is faster
-    // also this can be used to check for copies of the same map
+    // Item locations
     private Coordinate playerPosition;
     private ArrayList<Coordinate> boxCoordinates;
     private ArrayList<Coordinate> goalCoordinates;
@@ -16,21 +16,22 @@ public class State {
     private int goals;
     private int width;
     private int height;
-    private boolean visited = false;
-    // keeps track of the paths
-    private StringBuilder path;
-    // to be calculated
-    private double moveCost = 0;
+
     private double heuristicValue = 0.00;
 
-    // Directions: Up, Down, Left, Right
+    // keeps track of the paths
+    private StringBuilder path;
+
+    // Changes best on the action's cost
+    private double moveCost = 0;
+
+    // Directions specifiers
     private int[][] DIRECTIONS = {
             {0, -1}, // up
             {0, 1},  // down
             {-1, 0}, // left
             {1, 0}   // right
     };
-
     private char[] DIRECTION_CHARS = {'u', 'd', 'l', 'r'};
 
     // Constructor
@@ -42,6 +43,7 @@ public class State {
         this.moveCost = prevMoveCost;
     }
 
+    // Getters and Setters
     public Coordinate getPlayerPosition() {
         return playerPosition;
     }
@@ -53,15 +55,6 @@ public class State {
         this.path = newPath;
     }
 
-    public boolean getVisited() {
-        return visited;
-    }
-
-    public void setVisited() {
-        this.visited = true;
-    }
-
-    //HEURISTIC
     public double getHeuristicValue() {
         return heuristicValue;
     }
@@ -69,28 +62,16 @@ public class State {
         this.heuristicValue = heuristicValue;
     }
 
-    // MOVE COST
     public double getMoveCost() {
         return moveCost;
     }
     
-    // Set initial box coordinates
+    // For initialization of first state's items
     public void setBoxCoordinates(ArrayList<Coordinate> initialBoxCoordinates) {
         this.boxCoordinates = new ArrayList<>();
         for (Coordinate coord : initialBoxCoordinates) {
             this.boxCoordinates.add(new Coordinate(coord.x, coord.y));
         }
-    }
-
-    public void setGoalCoordinates(ArrayList<Coordinate> initialGoalCoordinates) {
-        this.goalCoordinates = new ArrayList<>();
-        for (Coordinate coord : initialGoalCoordinates) {
-            this.goalCoordinates.add(new Coordinate(coord.x, coord.y));
-        }
-    }
-
-    public ArrayList<Coordinate> getBoxCoordinates() {
-        return boxCoordinates;
     }
 
     public Coordinate getBoxCoordinate(int x, int y) {
@@ -100,6 +81,17 @@ public class State {
             }
         }
         return null;
+    }
+
+    public ArrayList<Coordinate> getBoxCoordinates() {
+        return boxCoordinates;
+    }
+
+    public void setGoalCoordinates(ArrayList<Coordinate> initialGoalCoordinates) {
+        this.goalCoordinates = new ArrayList<>();
+        for (Coordinate coord : initialGoalCoordinates) {
+            this.goalCoordinates.add(new Coordinate(coord.x, coord.y));
+        }
     }
 
     // Count number of boxes on goal positions
@@ -126,8 +118,7 @@ public class State {
         this.goals = newGoals;
     }
 
-    // where new states are made, it returns an ArrayList which will later be checked for a winning path
-    // before being added to the statesList
+    // For debugging
     public void printState() {
         System.out.printf("Current path: %s\n", getPath());
         System.out.printf("Player position: (%d, %d)\n", playerPosition.x, playerPosition.y);
@@ -158,21 +149,27 @@ public class State {
         }
     }
 
-    // where new states are made, it returns an ArrayList which will later be checked for a winning path
-    // before being added to the statesList
+    // Returns an ArrayList of states after validating the 4 directions
     public ArrayList<State> createStates(ArrayList<Coordinate> goalCoordinates, double currCost) {
         ArrayList<State> validStates = new ArrayList<>();
+        // Current player's position
         int playerX = playerPosition.x;
         int playerY = playerPosition.y;
 
         // a for loop for each direction
-        // note how continue is being used to skip when a state is a dud
         for (int i = 0; i < DIRECTIONS.length; i++) {
             int currMoveCost = 0;
+            // 3 for a movement with no action
+            // 2 for moving a box
+            // 0 for putting a box onto a goal
+
             int[] direction = DIRECTIONS[i];
+
+            // Moves my 1 based on current axis
             int newX = playerX + direction[0];
             int newY = playerY + direction[1];
 
+            // Checks if the destination is a box
             Coordinate boxAtNewPosition = getBoxCoordinate(newX, newY);
             Coordinate newPlayerPosition = new Coordinate(newX, newY);
 
@@ -182,8 +179,9 @@ public class State {
             // Skip wall states
             if (mapData[newY][newX] == '#') continue;
 
-            // If it's a box, check if the box can be pushed
+            // If a box is to be moved
             if (boxAtNewPosition != null) {
+                // new box coordinates
                 int boxNewX = newX + direction[0];
                 int boxNewY = newY + direction[1];
 
@@ -199,7 +197,6 @@ public class State {
                 // Goal check
                 if (mapData[boxNewY][boxNewX] == '.')
                     currMoveCost = 0;
-                    // currMoveCost += 0;
                 else
                     currMoveCost = 2;
 
@@ -219,16 +216,16 @@ public class State {
                     }
                 }
 
-                // Create a new state with the updated boxCoordinates
+                // Create a new state with the updated boxCoordinates after verifying that they are valid
                 State newState = new State(new Coordinate(newX, newY), width, height, goalCoordinates, currMoveCost + currCost);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
                 int goalCount = newState.countGoals(goalCoordinates);
                 newState.setGoals(goalCount);
 
+                // calculate state's heuristic
                 double heuristicValue = calculator.calcManDist(width, height, goalCoordinates, newBoxCoordinates, goalCount, newState.getPath(), newPlayerPosition);
                 heuristicValue -= goals;
-                
                 newState.setHeuristicValue(heuristicValue);
 
                 // Append the direction to the path
@@ -237,7 +234,6 @@ public class State {
 
             } else {
                 currMoveCost = 3;
-                // Copy of boxCoordinates
                 ArrayList<Coordinate> newBoxCoordinates = new ArrayList<>();
                 for (Coordinate coord : this.boxCoordinates) {
                     newBoxCoordinates.add(new Coordinate(coord.x, coord.y));
@@ -264,26 +260,18 @@ public class State {
         return validStates;
     }
 
-    // To copy a current state
-    public char[][] copyMap(char[][] original) {
-        char[][] copy = new char[original.length][];
-        for (int i = 0; i < original.length; i++) {
-            copy[i] = original[i].clone();
-        }
-        return copy;
-    }
-
+    // For checking a corner box
     public boolean deadlockCheck(int boxX, int boxY, ArrayList<Coordinate> goalCoordinates, char[][] mapData) {
-        // if it is a goal, its cool
+        // If the goal is in the corner, it is allowed
         for (Coordinate goal : goalCoordinates) {
             if (goal.x == boxX && goal.y == boxY) {
                 return false;
             }
         }
 
+        // Checks the directions for a wall
         boolean[] wallPresence = new boolean[DIRECTIONS.length];
 
-        // check all directions
         for (int i = 0; i < DIRECTIONS.length; i++) {
             int[] direction = DIRECTIONS[i];
             int newX = boxX + direction[0];
@@ -294,7 +282,7 @@ public class State {
             }
         }
 
-        // vertical and horizontal, note order is [u, d, l, r]
+        // If they form a corner, then it is invalid
         boolean upLeftCorner = wallPresence[0] && wallPresence[2];
         boolean upRightCorner = wallPresence[0] && wallPresence[3];
         boolean downLeftCorner = wallPresence[1] && wallPresence[2];

@@ -1,5 +1,6 @@
 package solver;
 
+// To create a static class to hold the unchanging map
 public final class GlobalMap {
 
     private static char[][] mapData;

@@ -1,30 +1,30 @@
 package solver;
 
-import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 import java.util.HashMap;
 
 public class SokoBot {
     public String solveSokobanPuzzle(int width, int height, char[][] mapData, char[][] itemsData) {
+        // Uses the GlobalMap static class to create a one time copy of the mapData which doesn't change
         GlobalMap.setMap(mapData);
 
-        Scanner scanner = new Scanner(System.in);
+        // Class for calculating the heurstic
         Heuristic calculator = new Heuristic();
+
         int input = 0;
         int totalStates = 0;
 
+        // Used for A* calculation on move cost
+        int moveCost = 0;
+
         // Where all the states will be added
         ArrayList<State> statesList = new ArrayList<>();
-        int moveCost = 0;
+
+        // Uses a priority queue to track the lowest heuristics
         PriorityQueue<State> statequeue = new PriorityQueue<State>(30000, new Heuristic());
 
-        // For making duplicate checking easier
-        ArrayList<Coordinate> boxCoordinates = new ArrayList<>();
-        HashMap<String, Boolean> boxCoords = new HashMap<String, Boolean>();
-
-        // For making goal checking easier
-        ArrayList<Coordinate> goalCoordinates = new ArrayList<>();
+        //Used for faster duplicate checking
         // Find the initial player position
         Coordinate initialPosition = null;
         for (int i = 0; i < height; i++) {
@@ -39,7 +39,9 @@ public class SokoBot {
             }
         }
 
-        // Store goal and box positions for easier duplicate checking
+        // Used to track the boxes so that the whole itemData array is no longer needed
+        ArrayList<Coordinate> boxCoordinates = new ArrayList<>();
+        ArrayList<Coordinate> goalCoordinates = new ArrayList<>();
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 if (mapData[i][j] == '.') {
@@ -51,7 +53,10 @@ public class SokoBot {
             }
         }
 
-        // Create the initial state
+        // Uses a hash map for faster duplicate detection
+        HashMap<String, Boolean> boxCoords = new HashMap<String, Boolean>();
+
+        // Creation of the initial state
         State initialState = new State(initialPosition, width, height, goalCoordinates, 0);
         initialState.setBoxCoordinates(boxCoordinates);
         initialState.setGoalCoordinates(goalCoordinates);
@@ -63,16 +68,18 @@ public class SokoBot {
         statesList.add(initialState);
         statequeue.add(initialState);
 
+        // Bot loop
         while(!statequeue.isEmpty()) {
+            // Adds a state to the explored list
+            // Dequeues from priority queue
             State currState = statequeue.poll();
+
+            // Creates states to revalidate as a duplicate
             ArrayList<State> newStates = currState.createStates(goalCoordinates, currState.getHeuristicValue());
             totalStates++;
 
-          // Check if any of the new states is a goal state
-
+            // Checks for a winning state
             for (State newState : newStates) {
-            // If all goals are filled, return the path
-
                 if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
                     System.out.println("Goal state reached!");
                     System.out.println(newState.getPath());
@@ -81,12 +88,14 @@ public class SokoBot {
                     return newState.getPath();
                 }
 
+                // Detects existing state by turning it into a string then finding it in the state hashmap
                 boolean existing = false;
                 String currBoxCoords = toBoxCoords(width, height, newState.getBoxCoordinates(), newState.getPlayerPosition());
                 if (boxCoords.get(currBoxCoords) != null) {
                     existing = true;
                 }
 
+                // if it is a valid state, add it to priority queue and list of states
                 if (!existing) {
                     statequeue.add(newState);
                     statesList.add(newState);
@@ -95,9 +104,11 @@ public class SokoBot {
             }
         }
 
-        return "lrlrlrlrlr";
+        return "";
     }
 
+    // Used to turn every state's cell into a string identifier
+    // The format is the player's coordinate | list of all boxcoordinates from top left to bottom right
     private String toBoxCoords(int width, int height, ArrayList<Coordinate> boxCoordinates, Coordinate playerPosition) {
         StringBuilder boxCoords = new StringBuilder();
 
@@ -108,7 +119,7 @@ public class SokoBot {
         });
 
         for (Coordinate box : boxCoordinates) {
-            boxCoords.append(box.y * width + box.x).append(',');
+            boxCoords.append(box.y * width + box.x);
         }
 
         String playerCoords = Integer.toString(playerPosition.y * width + playerPosition.x);
