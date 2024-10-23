@@ -90,6 +90,15 @@ public class State {
         return boxCoordinates;
     }
 
+    public Coordinate getBoxCoordinate(int x, int y) {
+        for (Coordinate box : boxCoordinates) {
+            if (box.x == x && box.y == y) {
+                return box;
+            }
+        }
+        return null;
+    }
+
     // Count number of boxes on goal positions
     public int countGoals(ArrayList<Coordinate> goalCoordinates) {
         int goalSpots = 0;
@@ -145,17 +154,6 @@ public class State {
             System.out.println();
         }
     }
-
-    public Coordinate getBoxCoordinate(int x, int y) {
-        for (Coordinate box : boxCoordinates) {
-            if (box.x == x && box.y == y) {
-                return box;
-            }
-        }
-        return null;
-    }
-
-
 
     // where new states are made, it returns an ArrayList which will later be checked for a winning path
     // before being added to the statesList
