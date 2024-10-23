@@ -64,6 +64,8 @@ public class SokoBot {
     // USES LAST INDEX
 
     // new commit
+    int timelimit = 15000;
+    long startTime = System.currentTimeMillis();
     do {
       input = statesList.size() - 1;
       // Automatic selection: Start from index 0 and move up if the state is visited
@@ -82,7 +84,7 @@ public class SokoBot {
         State selectedState = statesList.get(input);
         selectedState.setVisited();
 
-        System.out.printf("SELECTED STATE: %d\n", input);
+//        System.out.printf("SELECTED STATE: %d\n", input);
         totalState++;
 
         ArrayList<State> newStates = selectedState.createStates(goalCoordinates);
@@ -93,6 +95,8 @@ public class SokoBot {
           if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
             System.out.println("Goal state reached!");
             System.out.println("States Visited: " + totalState);
+            System.out.println("Total States: " + statesList.size());
+            System.exit(0);
             return newState.getPath();
           }
 
@@ -138,6 +142,14 @@ public class SokoBot {
       } else {
         // Print message when the state is already visited
         System.out.println("State already visited.");
+      }
+
+      if (System.currentTimeMillis() - startTime >= timelimit) {
+        System.out.println("Time limit reached");
+        System.out.println("States Visited: " + totalState);
+        System.out.println("Total States: " + statesList.size());
+        System.exit(0);
+        return "";
       }
 
     } while (true);

@@ -2,7 +2,6 @@ package gui;
 
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.KeyListener;
@@ -13,7 +12,6 @@ import java.awt.image.BufferedImage;
 import java.awt.Font;
 import javax.swing.Timer;
 import java.io.File;
-
 import javax.imageio.ImageIO;
 import reader.MapData;
 
@@ -38,7 +36,6 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
   private final int TILE_SIZE = 32;
 
   private boolean freePlay = false;
-  private boolean waitingForSpace = false;
   private String solutionString = "";
   private int solutionCtr = -1;
 
@@ -48,7 +45,6 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
   private Font statusValueFont;
   private String statusString = "";
 
-  private final String STATUS_WAITING_FOR_SPACE = "Push SPACE to start Bot...";
   private final String STATUS_WAITING_FOR_SOLUTION = "Waiting for solution...";
   private final String STATUS_SOLUTION_TIMEOUT = "TIME'S UP! Bot took too long thinking...";
   private final String STATUS_PLAYING_SOLUTION = "Playing solution...";
@@ -67,10 +63,8 @@ public class GamePanel extends JPanel implements KeyListener, ActionListener {
   private Timer solutionTimer;
   private Timer checkForSolutionTimer;
   private long solutionStartTime;
-  private long solutionEndTime;
 
-//  private final int SOLUTION_TIME_LIMIT = 15000;
-private final int SOLUTION_TIME_LIMIT = 30000;
+  private final int SOLUTION_TIME_LIMIT = 30000;
 
   public GamePanel() {
     this.setBackground(Color.BLACK);
@@ -154,9 +148,9 @@ private final int SOLUTION_TIME_LIMIT = 30000;
     columns = mapData.columns;
 
     if (playerCount == 1 && boxCount == goalCount && boxCount > 0) {
-      freePlay = false;
       mapLoaded = true;
       this.repaint();
+      initiateSolution(); // Automatically initiate the solution
     }
   }
 
@@ -179,8 +173,7 @@ private final int SOLUTION_TIME_LIMIT = 30000;
           }
           if (target != null) {
             g.drawImage(target, UPPER_LEFT_X + j * TILE_SIZE,
-                UPPER_LEFT_Y + i * TILE_SIZE, TILE_SIZE, TILE_SIZE,
-                this);
+                    UPPER_LEFT_Y + i * TILE_SIZE, TILE_SIZE, TILE_SIZE, this);
           }
           target = null;
           if (items[i][j] == '$' && map[i][j] == '.') {
@@ -192,8 +185,7 @@ private final int SOLUTION_TIME_LIMIT = 30000;
           }
           if (target != null) {
             g.drawImage(target, UPPER_LEFT_X + j * TILE_SIZE,
-                UPPER_LEFT_Y + i * TILE_SIZE, TILE_SIZE, TILE_SIZE,
-                this);
+                    UPPER_LEFT_Y + i * TILE_SIZE, TILE_SIZE, TILE_SIZE, this);
           }
         }
       }
@@ -216,17 +208,33 @@ private final int SOLUTION_TIME_LIMIT = 30000;
 
   public void initiateFreePlay() {
     this.statusString = STATUS_FREE_PLAY;
-    waitingForSpace = false;
     freePlay = true;
   }
 
   public void initiateSolution() {
-    this.statusString = STATUS_WAITING_FOR_SPACE;
-    waitingForSpace = true;
+    this.statusString = STATUS_WAITING_FOR_SOLUTION;
     freePlay = false;
+
+    char[][] mapDataCopy = new char[rows][columns];
+    char[][] itemsDataCopy = new char[rows][columns];
+
+    for (int i = 0; i < rows; i++) {
+      for (int j = 0; j < columns; j++) {
+        mapDataCopy[i][j] = map[i][j];
+        itemsDataCopy[i][j] = items[i][j];
+      }
+    }
+
+    solutionThread = new BotThread(columns, rows, mapDataCopy, itemsDataCopy);
+    solutionThread.start();
+    solutionStartTime = System.nanoTime();
+    solutionTimer = new Timer(SOLUTION_TIME_LIMIT, this);
+    solutionTimer.start();
+    checkForSolutionTimer = new Timer(30, this);
+    checkForSolutionTimer.start();
+    this.repaint();
   }
 
-  // 0 - Up, 1 - down, 2 - left, 3 - right
   private void executeMove(int direction) {
     int ptRow = -1;
     int ptCol = -1;
@@ -289,7 +297,6 @@ private final int SOLUTION_TIME_LIMIT = 30000;
     }
 
     moves++;
-
     this.repaint();
   }
 
@@ -311,47 +318,17 @@ private final int SOLUTION_TIME_LIMIT = 30000;
           break;
         case KeyEvent.VK_ESCAPE:
           GameFrame topFrame = (GameFrame) SwingUtilities.getWindowAncestor(this);
-
           topFrame.restart();
           break;
-      }
-    } else if (waitingForSpace) {
-      if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-        waitingForSpace = false;
-        this.statusString = STATUS_WAITING_FOR_SOLUTION;
-
-        char[][] mapDataCopy = new char[rows][columns];
-        char[][] itemsDataCopy = new char[rows][columns];
-
-        for (int i = 0; i < rows; i++) {
-          for (int j = 0; j < columns; j++) {
-            mapDataCopy[i][j] = map[i][j];
-            itemsDataCopy[i][j] = items[i][j];
-          }
-        }
-
-        solutionThread = new BotThread(columns, rows, mapDataCopy, itemsDataCopy);
-        solutionThread.start();
-        solutionStartTime = System.nanoTime();
-        solutionTimer = new Timer(SOLUTION_TIME_LIMIT, this);
-        solutionTimer.start();
-        checkForSolutionTimer = new Timer(30, this);
-        checkForSolutionTimer.start();
-
-        this.repaint();
       }
     }
   }
 
   @Override
-  public void keyReleased(KeyEvent e) {
-
-  }
+  public void keyReleased(KeyEvent e) {}
 
   @Override
-  public void keyTyped(KeyEvent e) {
-
-  }
+  public void keyTyped(KeyEvent e) {}
 
   public void playSolution(String solutionString) {
     playSolution(solutionString, 100);
@@ -392,21 +369,19 @@ private final int SOLUTION_TIME_LIMIT = 30000;
       }
     } else if (e.getSource() == checkForSolutionTimer) {
       if (!solutionThread.isAlive()) {
-        // Solution was found
         solutionTimer.stop();
         checkForSolutionTimer.stop();
         String solution = solutionThread.getSolution();
         this.playSolution(solution);
       }
       long elapsedSolutionTime = System.nanoTime() - solutionStartTime;
-      this.solutionTimeString = String.format("%.2f", elapsedSolutionTime / 1000000000.0) + "s";
+      this.solutionTimeString = String.format("%.2f", elapsedSolutionTime / 1_000_000_000.0) + "s";
       this.repaint();
     } else if (e.getSource() == solutionTimer) {
-      // Solution was not found
       solutionTimer.stop();
       checkForSolutionTimer.stop();
       long elapsedSolutionTime = System.nanoTime() - solutionStartTime;
-      this.solutionTimeString = String.format("%.2f", elapsedSolutionTime / 1000000000.0);
+      this.solutionTimeString = String.format("%.2f", elapsedSolutionTime / 1_000_000_000.0);
       this.statusString = STATUS_SOLUTION_TIMEOUT;
       this.repaint();
     }
