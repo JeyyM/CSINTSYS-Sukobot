@@ -3,7 +3,9 @@ package solver;
 import java.util.ArrayList;
 
 public class State {
-    private char[][] mapData = GlobalMap.getMap();
+    private char[][] itemsData;
+    private char[][] mapData;
+
     private Heuristic calculator = new Heuristic();
 
     // player position is kept as a coordinate so that getting the position for the states is faster
@@ -19,6 +21,7 @@ public class State {
     // keeps track of the paths
     private StringBuilder path;
     // to be calculated
+    private double moveCost = 0;
     private double heuristicValue = 0.00;
 
     // Directions: Up, Down, Left, Right
@@ -30,17 +33,17 @@ public class State {
     };
 
     private char[] DIRECTION_CHARS = {'u', 'd', 'l', 'r'};
-    private int EMPTY_MOVE = 15;
-    private int BOX_MOVE = 3;
-    private int GOAL_MOVE = 0;
 
     // Constructor
-    public State(Coordinate playerPosition, int width, int height, ArrayList<Coordinate> goalCoordinates) {
+    public State(char[][] mapData, char[][] itemsData, Coordinate playerPosition, int width, int height, ArrayList<Coordinate> goalCoordinates, double prevMoveCost) {
+        this.mapData = mapData;
+        this.itemsData = itemsData;
         this.playerPosition = playerPosition;
         this.width = width;
         this.height = height;
         this.path = new StringBuilder();
-//        this.goals = countGoals(goalCoordinates);
+        this.goals = countGoals(goalCoordinates);
+        this.moveCost = prevMoveCost;
     }
 
     public Coordinate getPlayerPosition() {
@@ -52,6 +55,10 @@ public class State {
     }
     public void setPath(StringBuilder newPath) {
         this.path = newPath;
+    }
+    
+    public char[][] getItemsData() {
+        return this.itemsData;
     }
 
     public boolean getVisited() {
@@ -69,6 +76,11 @@ public class State {
         this.heuristicValue = heuristicValue;
     }
 
+    // MOVE COST
+    public double getMoveCost() {
+        return moveCost;
+    }
+    
     // Set initial box coordinates
     public void setBoxCoordinates(ArrayList<Coordinate> initialBoxCoordinates) {
         this.boxCoordinates = new ArrayList<>();
@@ -88,38 +100,19 @@ public class State {
         return boxCoordinates;
     }
 
-    public Coordinate getBoxCoordinate(int x, int y) {
-        for (Coordinate box : boxCoordinates) {
-            if (box.x == x && box.y == y) {
-                return box;
-            }
-        }
-        return null;
-    }
-
     // Count number of boxes on goal positions
     public int countGoals(ArrayList<Coordinate> goalCoordinates) {
         int goalSpots = 0;
-
         for (Coordinate goal : goalCoordinates) {
-            for (Coordinate box : boxCoordinates) {
-                if (goal.x == box.x && goal.y == box.y) {
-                    goalSpots++;
-                    break;
-                }
+            if (itemsData[goal.y][goal.x] == '$') {
+                goalSpots++;
             }
         }
-
         return goalSpots;
     }
 
-
     public int getGoals(){
         return this.goals;
-    }
-
-    public void setGoals(int newGoals){
-        this.goals = newGoals;
     }
 
     // where new states are made, it returns an ArrayList which will later be checked for a winning path
@@ -132,6 +125,7 @@ public class State {
         System.out.println("Goal Positions: " + this.goalCoordinates);
         System.out.printf("Heuristic value: %.2f\n", heuristicValue);
 
+        // Print map and item data side by side for better visualization
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 System.out.printf("[%c] ", mapData[i][j]);
@@ -140,13 +134,7 @@ public class State {
             System.out.print("    ");
 
             for (int j = 0; j < width; j++) {
-                if (playerPosition.x == j && playerPosition.y == i) {
-                    System.out.print("[@] ");
-                } else if (getBoxCoordinate(j, i) != null) {
-                    System.out.print("[$] ");
-                } else {
-                    System.out.print("[ ] ");
-                }
+                System.out.printf("[%c] ", itemsData[i][j]);
             }
 
             System.out.println();
@@ -155,7 +143,7 @@ public class State {
 
     // where new states are made, it returns an ArrayList which will later be checked for a winning path
     // before being added to the statesList
-    public ArrayList<State> createStates(ArrayList<Coordinate> goalCoordinates) {
+    public ArrayList<State> createStates(ArrayList<Coordinate> goalCoordinates, double currCost) {
         ArrayList<State> validStates = new ArrayList<>();
         int playerX = playerPosition.x;
         int playerY = playerPosition.y;
@@ -163,10 +151,12 @@ public class State {
         // a for loop for each direction
         // note how continue is being used to skip when a state is a dud
         for (int i = 0; i < DIRECTIONS.length; i++) {
+            int currMoveCost = 0;
             int[] direction = DIRECTIONS[i];
             int newX = playerX + direction[0];
             int newY = playerY + direction[1];
-            Coordinate boxAtNewPosition = getBoxCoordinate(newX, newY);
+            
+            Coordinate newPlayerPosition = new Coordinate(newX, newY);
 
             // Avoid out of bounds
             if (newX < 0 || newX >= width || newY < 0 || newY >= height) continue;
@@ -175,7 +165,7 @@ public class State {
             if (mapData[newY][newX] == '#') continue;
 
             // If it's a box, check if the box can be pushed
-            if (boxAtNewPosition != null) {
+            if (itemsData[newY][newX] == '$') {
                 int boxNewX = newX + direction[0];
                 int boxNewY = newY + direction[1];
 
@@ -183,10 +173,28 @@ public class State {
                 if (boxNewX < 0 || boxNewX >= width || boxNewY < 0 || boxNewY >= height) continue;
 
                 // Check if the new box position is valid
-                if (mapData[boxNewY][boxNewX] == '#' || getBoxCoordinate(boxNewX, boxNewY) != null) continue;
+                if (mapData[boxNewY][boxNewX] == '#' || itemsData[boxNewY][boxNewX] != ' ') continue;
 
                 // Deadlock check
-                if (deadlockCheck(boxNewX, boxNewY, goalCoordinates, mapData)) continue;
+                if (deadlockCheck(boxNewX, boxNewY, goalCoordinates, mapData, itemsData)) continue;
+
+                // Goal check
+                if (mapData[boxNewY][boxNewX] == '.')
+                    currMoveCost = 0;
+                    // currMoveCost += 0;
+                else
+                    currMoveCost = 2;
+                
+                // Create a new state with the box and player moved
+                char[][] newItemsData = copyMap(itemsData);
+
+                // Clear the box's original spot, then put it in the new position
+                newItemsData[newY][newX] = ' ';
+                newItemsData[boxNewY][boxNewX] = '$';
+
+                // Move the player
+                newItemsData[playerY][playerX] = ' ';
+                newItemsData[newY][newX] = '@';
 
                 // Copy the current boxCoordinates
                 ArrayList<Coordinate> newBoxCoordinates = new ArrayList<>();
@@ -205,22 +213,31 @@ public class State {
                 }
 
                 // Create a new state with the updated boxCoordinates
-                State newState = new State(new Coordinate(newX, newY), width, height, goalCoordinates);
+                State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates, currMoveCost + currCost);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
-                int goalCount = newState.countGoals(goalCoordinates);
-                newState.setGoals(goalCount);
+                // newState.setHeuristicValue(heuristicValue);
+                // Test for git change AAAAAAAAAAAAAAAA
 
-                double heuristicValue = calculator.calcManDist(width, height, goalCoordinates, newBoxCoordinates, goalCount, newState.getPath(), new Coordinate(newX, newY));
-
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, newBoxCoordinates, newPlayerPosition, newState.countGoals(goalCoordinates));
+                heuristicValue -= goals;
+                
                 newState.setHeuristicValue(heuristicValue);
 
                 // Append the direction to the path
                 newState.setPath(new StringBuilder(this.getPath()).append(DIRECTION_CHARS[i]));
                 validStates.add(newState);
 
-            } else {
+            }
+            else if (itemsData[newY][newX] == ' ') {
+                currMoveCost = 3;
                 // Create a new state when the player moves to an empty space
+                char[][] newItemsData = copyMap(itemsData);
+
+                // Move the player
+                newItemsData[playerY][playerX] = ' ';
+                newItemsData[newY][newX] = '@';
+
                 // Copy of boxCoordinates
                 ArrayList<Coordinate> newBoxCoordinates = new ArrayList<>();
                 for (Coordinate coord : this.boxCoordinates) {
@@ -228,14 +245,13 @@ public class State {
                 }
 
                 // Create a new state with the same boxCoordinates
-                State newState = new State(new Coordinate(newX, newY), width, height, goalCoordinates);
+                State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates, currMoveCost + currCost);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
-                int goalCount = newState.countGoals(goalCoordinates);
-                newState.setGoals(goalCount);
 
-                double heuristicValue = calculator.calcManDist(width, height, goalCoordinates, boxCoordinates, goalCount, newState.getPath(), new Coordinate(newX, newY));
-
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, newBoxCoordinates, newPlayerPosition, newState.countGoals(goalCoordinates));
+                heuristicValue -= goals;
+                
                 newState.setHeuristicValue(heuristicValue);
 
                 // Append the direction to the path
@@ -247,114 +263,6 @@ public class State {
         return validStates;
     }
 
-//    public ArrayList<State> createStates(ArrayList<Coordinate> goalCoordinates) {
-//        ArrayList<State> validStates = new ArrayList<>();
-//        int playerX = playerPosition.x;
-//        int playerY = playerPosition.y;
-//
-//        // a for loop for each direction
-//        // note how continue is being used to skip when a state is a dud
-//        for (int i = 0; i < DIRECTIONS.length; i++) {
-//            int[] direction = DIRECTIONS[i];
-//            int newX = playerX + direction[0];
-//            int newY = playerY + direction[1];
-//
-//            // Avoid out of bounds
-//            if (newX < 0 || newX >= width || newY < 0 || newY >= height) continue;
-//
-//            // Skip wall states
-//            if (mapData[newY][newX] == '#') continue;
-//
-//            // If it's a box, check if the box can be pushed
-//            if (itemsData[newY][newX] == '$') {
-//                int boxNewX = newX + direction[0];
-//                int boxNewY = newY + direction[1];
-//
-//                // Avoid box going out of bounds
-//                if (boxNewX < 0 || boxNewX >= width || boxNewY < 0 || boxNewY >= height) continue;
-//
-//                // Check if the new box position is valid
-//                if (mapData[boxNewY][boxNewX] == '#' || itemsData[boxNewY][boxNewX] != ' ') continue;
-//
-//                // Deadlock check
-//                if (deadlockCheck(boxNewX, boxNewY, goalCoordinates, mapData)) continue;
-//
-//                // Create a new state with the box and player moved
-//                char[][] newItemsData = copyMap(itemsData);
-//
-//                // Clear the box's original spot, then put it in the new position
-//                newItemsData[newY][newX] = ' ';
-//                newItemsData[boxNewY][boxNewX] = '$';
-//
-//                // Move the player
-//                newItemsData[playerY][playerX] = ' ';
-//                newItemsData[newY][newX] = '@';
-//
-//                // Copy the current boxCoordinates
-//                ArrayList<Coordinate> newBoxCoordinates = new ArrayList<>();
-//                for (Coordinate coord : this.boxCoordinates) {
-//                    newBoxCoordinates.add(new Coordinate(coord.x, coord.y));
-//                }
-//
-//                // Update the box coordinates by finding the pushed box
-//                for (int j = 0; j < newBoxCoordinates.size(); j++) {
-//                    Coordinate coord = newBoxCoordinates.get(j);
-//                    if (coord.x == newX && coord.y == newY) {
-//                        coord.x = boxNewX;
-//                        coord.y = boxNewY;
-//                        break;
-//                    }
-//                }
-//
-//                // Create a new state with the updated boxCoordinates
-//                State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates);
-//                newState.setBoxCoordinates(newBoxCoordinates);
-//                newState.setGoalCoordinates(this.goalCoordinates);
-//                int goalCount = newState.countGoals(goalCoordinates);
-//                newState.setGoals(goalCount);
-//
-//                double heuristicValue = calculator.calcManDist(mapData, width, height, goalCoordinates, newBoxCoordinates, goalCount, newState.getPath(), new Coordinate(newX, newY));
-//
-//                newState.setHeuristicValue(heuristicValue);
-//
-//                // Append the direction to the path
-//                newState.setPath(new StringBuilder(this.getPath()).append(DIRECTION_CHARS[i]));
-//                validStates.add(newState);
-//
-//            } else if (itemsData[newY][newX] == ' ') {
-//                // Create a new state when the player moves to an empty space
-//                char[][] newItemsData = copyMap(itemsData);
-//
-//                // Move the player
-//                newItemsData[playerY][playerX] = ' ';
-//                newItemsData[newY][newX] = '@';
-//
-//                // Copy of boxCoordinates
-//                ArrayList<Coordinate> newBoxCoordinates = new ArrayList<>();
-//                for (Coordinate coord : this.boxCoordinates) {
-//                    newBoxCoordinates.add(new Coordinate(coord.x, coord.y));
-//                }
-//
-//                // Create a new state with the same boxCoordinates
-//                State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates);
-//                newState.setBoxCoordinates(newBoxCoordinates);
-//                newState.setGoalCoordinates(this.goalCoordinates);
-//                int goalCount = newState.countGoals(goalCoordinates);
-//                newState.setGoals(goalCount);
-//
-//                double heuristicValue = calculator.calcManDist(mapData, width, height, goalCoordinates, boxCoordinates, goalCount, newState.getPath(), new Coordinate(newX, newY));
-//
-//                newState.setHeuristicValue(heuristicValue);
-//
-//                // Append the direction to the path
-//                newState.setPath(new StringBuilder(this.getPath()).append(DIRECTION_CHARS[i]));
-//                validStates.add(newState);
-//            }
-//        }
-//
-//        return validStates;
-//    }
-
     // To copy a current state
     public char[][] copyMap(char[][] original) {
         char[][] copy = new char[original.length][];
@@ -364,7 +272,7 @@ public class State {
         return copy;
     }
 
-    public boolean deadlockCheck(int boxX, int boxY, ArrayList<Coordinate> goalCoordinates, char[][] mapData) {
+    public boolean deadlockCheck(int boxX, int boxY, ArrayList<Coordinate> goalCoordinates, char[][] mapData, char[][] itemsData) {
         // if it is a goal, its cool
         for (Coordinate goal : goalCoordinates) {
             if (goal.x == boxX && goal.y == boxY) {
@@ -396,6 +304,23 @@ public class State {
         }
 
         return false;
+    }
+
+    @Override
+    public String toString() {
+        String player = playerPosition.toString();
+        String box = "| ";
+
+        for(Coordinate b : boxCoordinates) {
+            box = box + b.toString() + " ";
+        }
+        player = player + box;
+        double d = getHeuristicValue();
+        double m = getMoveCost();
+        player = player + " M:" + m;
+        player = player + " H:" + d;
+
+        return player;
     }
 
 }

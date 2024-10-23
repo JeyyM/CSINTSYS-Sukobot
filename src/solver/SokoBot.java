@@ -2,18 +2,27 @@ package solver;
 
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.PriorityQueue;
+
+// random selector
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+
 
 public class SokoBot {
-  public String solveSokobanPuzzle(int width, int height, char[][] mapData, char[][] itemsData) {
-    GlobalMap.setMap(mapData);
 
+  public String solveSokobanPuzzle(int width, int height, char[][] mapData, char[][] itemsData) {
     Scanner scanner = new Scanner(System.in);
     Heuristic calculator = new Heuristic();
     int input = 0;
-    int totalState = 0;
+    int totalStates = 0;
 
     // Where all the states will be added
+    ArrayList<String> boxCoords = new ArrayList<>();
     ArrayList<State> statesList = new ArrayList<>();
+    int moveCost = 0;
+    PriorityQueue<State> statequeue = new PriorityQueue<State>(30000, new Heuristic());
 
     // For making duplicate checking easier
     ArrayList<Coordinate> boxCoordinates = new ArrayList<>();
@@ -46,20 +55,19 @@ public class SokoBot {
     }
 
     // Create the initial state
-    State initialState = new State(initialPosition, width, height, goalCoordinates);
+    State initialState = new State(mapData, itemsData, initialPosition, width, height, goalCoordinates, 0);
     initialState.setBoxCoordinates(boxCoordinates);
     initialState.setGoalCoordinates(goalCoordinates);
-    int goalCount = initialState.countGoals(goalCoordinates);
-    initialState.setGoals(goalCount);
 
-    initialState.setHeuristicValue(calculator.calcManDist(width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates), initialState.getPath(), initialPosition));
+    initialState.setHeuristicValue(calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, initialPosition, initialState.countGoals(goalCoordinates)));
 
     statesList.add(initialState);
+    statequeue.add(initialState);
 
     // USES LAST INDEX
 
     // new commit
-    do {
+    /*do {
       input = statesList.size() - 1;
       // Automatic selection: Start from index 0 and move up if the state is visited
       while (input >= 0 && statesList.get(input).getVisited()) {
@@ -78,7 +86,6 @@ public class SokoBot {
         selectedState.setVisited();
 
         System.out.printf("SELECTED STATE: %d\n", input);
-        totalState++;
 
         ArrayList<State> newStates = selectedState.createStates(goalCoordinates);
 
@@ -87,7 +94,6 @@ public class SokoBot {
           // If all goals are filled, return the path
           if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
             System.out.println("Goal state reached!");
-            System.out.println("States Visited: " + totalState);
             return newState.getPath();
           }
 
@@ -98,6 +104,7 @@ public class SokoBot {
             // Get player positions
             Coordinate existingPosition = existingState.getPlayerPosition();
             Coordinate newPosition = newState.getPlayerPosition();
+
             // Check if the player positions are the same using x and y values
             if (existingPosition.x == newPosition.x && existingPosition.y == newPosition.y) {
               boolean sameBoxes = true;
@@ -135,7 +142,100 @@ public class SokoBot {
         System.out.println("State already visited.");
       }
 
-    } while (true);
+    } while (true); */
+
+    while(!statequeue.isEmpty()) {
+      State currState = statequeue.poll();
+      
+      System.out.println("SELECTED STATE: " + currState.toString());
+      //System.out.println(statequeue);
+
+      ArrayList<State> newStates = currState.createStates(goalCoordinates, currState.getHeuristicValue());
+      //System.out.println("Current States " + totalStates);
+      totalStates++;
+      
+      
+      if (totalStates > 42000) {
+          System.out.println(currState.getPath());
+          System.out.println("Path Cost: " + currState.getMoveCost());
+          System.out.println("Total States: " + totalStates);
+          return currState.getPath();
+      }
+      
+      
+      // Check if any of the new states is a goal state
+      for (State newState : newStates) {
+        // If all goals are filled, return the path
+        if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
+          System.out.println("Goal state reached!");
+          System.out.println(newState.getPath());
+          System.out.println("Path Cost: " + newState.getMoveCost());
+            System.out.println("Total States: " + totalStates);
+          return newState.getPath();
+        }
+
+        boolean existing = false;
+        String currBoxCoords = toBoxCoords(width, height, newState.getItemsData());
+          //System.out.println("Current State: " + newState.toString());
+          //System.out.println("Box Coord of State: " + currBoxCoords);
+        
+          
+        if (boxCoords.contains(currBoxCoords)) {
+            //System.out.println("********** this exists !! ***************");
+            // System.out.println(existingState.toString());
+            existing = true;
+        }
+          
+        // Check if the new state is a duplicate of any existing state
+        /*
+        for (State existingState : statesList) {
+          // Get player positions
+          Coordinate existingPosition = existingState.getPlayerPosition();
+          Coordinate newPosition = newState.getPlayerPosition();
+
+          // Check if the player positions are the same using x and y values
+          if (existingPosition.x == newPosition.x && existingPosition.y == newPosition.y) {
+            //boolean sameBoxes = true;
+            
+            /*
+            // Compare each box coordinate in the existing with the new state
+            for (int i = 0; i < existingState.getBoxCoordinates().size(); i++) {
+              Coordinate box = existingState.getBoxCoordinates().get(i);
+              Coordinate newBox = newState.getBoxCoordinates().get(i);
+
+              if (box.x != newBox.x || box.y != newBox.y) {
+                sameBoxes = false;
+                break;
+              }
+            }
+
+            // If all boxes match, mark the state as existing
+            if (sameBoxes) {
+                System.out.println("********** this exists !! ***************");
+                System.out.println(existingState.toString());
+              existing = true;
+              break;
+            }
+            
+            
+            
+            
+            
+          }
+        }
+        */
+
+        // If not a duplicate, add the new state to the statesList
+        if (!existing) {
+            statequeue.add(newState);
+            statesList.add(newState);
+            boxCoords.add(currBoxCoords);
+              //System.out.println("boxCoords length: " + boxCoords.size());
+            //if (totalStates > 10000)
+              //System.out.println(statequeue);
+        }
+      }
+    }
 
     // MANUAL INPUTTING SECTION
 //    do {
@@ -221,7 +321,23 @@ public class SokoBot {
 //
 //    } while (true);
 
-    return "";
+    return "lrlrlrlrlr";
+  }
+  
+  private String toBoxCoords(int width, int height, char[][] itemsData) {
+      StringBuilder boxCoords = new StringBuilder();
+      String playerCoords = new String();
+      for (int i = 0; i < height; i++) {
+          for (int j = 0; j < width; j++) {
+              if (itemsData[i][j] == '$') {
+                  boxCoords.append(Integer.toString(i * width + j));
+              }
+              if (itemsData[i][j] == '@') {
+                  playerCoords = Integer.toString(i * width + j);
+              }
+          }
+      }
+      return playerCoords + '|' + boxCoords.toString();
   }
 }
 

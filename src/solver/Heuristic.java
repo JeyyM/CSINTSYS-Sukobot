@@ -6,58 +6,73 @@ import java.lang.Math;
 import java.util.Collections;
 import java.util.Comparator;
 
-public class Heuristic {
-    public static double calcManDist(int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, int goals, String path, Coordinate playerPosition) {
-        char[][] mapData = GlobalMap.getMap();
+public class Heuristic implements Comparator<State> {
+    //Calculate sum of Manhattan Distances between each crate to its NEAREST goal spot
+    public static double calcManDist(char[][] mapData, char[][] itemsData, int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, Coordinate playerPosition, int goals) {
         double heuristicValue = 0;
 
-        int goalCount = goalCoordinates.size();
-        int boxCount = crateCoordinates.size();
-
-        if (goals == goalCount) {
+        //Already in a goal state
+        if(goals == goalCoordinates.size())
             return 0;
-        }
+        else {
+            //iterate for each coordinate of crate to each coordinate of goal spot
+            int minManDist = Integer.MAX_VALUE;
+            int manDist = 0;
+            
+            int minCrateDist = Integer.MAX_VALUE;
+            int crateDist = 0;
+            for(int i = 0; i < crateCoordinates.size(); i++) {
+                minManDist = Integer.MAX_VALUE;
+                manDist = 0;
 
-        boolean[] boxBind = new boolean[boxCount];
-        int[] goalMinDist = new int[goalCount];
+                //Filter only for crates not on the goal spot
+                if (mapData[crateCoordinates.get(i).y][crateCoordinates.get(i).x] == '.')
+                    continue;
 
-        for (int i = 0; i < goalCount; i++) {
-            goalMinDist[i] = Integer.MAX_VALUE;
-        }
+                for(int j = 0; j < goalCoordinates.size(); j++) {
+                    //Filter only for goal spots that are vacant
+                    if(itemsData[goalCoordinates.get(j).y][goalCoordinates.get(j).x] == '$')
+                        continue;
 
-        for (int i = 0; i < goalCount; i++) {
-            Coordinate goal = goalCoordinates.get(i);
-
-            int minDistance = Integer.MAX_VALUE;
-            int closestBoxInd = -1;
-
-            for (int j = 0; j < boxCount; j++) {
-                if (boxBind[j]) continue;
-
-                Coordinate box = crateCoordinates.get(j);
-                int manDist = Math.abs(box.x - goal.x) + Math.abs(box.y - goal.y);
-
-                if (manDist < minDistance) {
-                    minDistance = manDist;
-                    closestBoxInd = j;
+                    manDist = Math.abs(crateCoordinates.get(i).x - goalCoordinates.get(j).x) + Math.abs(crateCoordinates.get(i).y - goalCoordinates.get(j).y);
+                    if(minManDist > manDist)
+                        minManDist = manDist;
+                    if(minManDist == 1)
+                        break;
                 }
+                heuristicValue += minManDist;
+                
+                crateDist = Math.abs(crateCoordinates.get(i).x - playerPosition.x) + Math.abs(crateCoordinates.get(i).y - playerPosition.y);
+                
+                if (minCrateDist > crateDist)
+                    minCrateDist = crateDist;
             }
-
-            if (closestBoxInd != -1) {
-                boxBind[closestBoxInd] = true;
-                goalMinDist[i] = minDistance;
-            }
+            heuristicValue += (0.75 * minCrateDist);
         }
-
-        for (int i = 0; i < goalCount; i++) {
-            heuristicValue += goalMinDist[i] * 20;
-        }
-
-        heuristicValue += (goals * 0.5);
-        heuristicValue -= path.length() * 0.001;
-
+        
         return heuristicValue;
     }
+
+    //Sort heuristic values of ArrayList of states using bubble sort
+//    public static void sortNonDecreasing(ArrayList<State> stateList) {
+//        State temp;
+//        boolean swapped;
+//
+//        for(int i = 0; i < stateList.size() - 1; i++) {
+//            swapped = false;
+//            for(int j = 0; j < stateList.size() - i - 1; j++) {
+//                if(stateList.get(j).getHeuristicValue() > stateList.get(j + 1).getHeuristicValue()) {
+//                    temp = stateList.get(j);
+//                    stateList.set(j, stateList.get(j + 1));
+//                    stateList.set(j + 1, temp);
+//                    swapped = true;
+//                }
+//            }
+//
+//            if(swapped == false)
+//                break;
+//        }
+//    }
 
     public static void sortDescending(ArrayList<State> stateList) {
         Collections.sort(stateList, new Comparator<State>() {
@@ -68,49 +83,57 @@ public class Heuristic {
         });
     }
 
-//    public static Coordinate getBoxCoordinate(int x, int y, ArrayList<Coordinate> boxCoordinates) {
-//        for (Coordinate box : boxCoordinates) {
-//            if (box.x == x && box.y == y) {
-//                return box;
-//            }
-//        }
-//        return null;
-//    }
-
-//    public static double calcManDist(char[][] mapData, int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, int goals, String path, Coordinate playerPosition) {
-//        double heuristicValue = 0;
-//
-//        //Already in a goal state
-//        if(goals == goalCoordinates.size())
-//            return 0;
-//        else {
-//            //iterate for each coordinate of crate to each coordinate of goal spot
-//            int minManDist = 9999;
-//            int manDist = 0;
-//            for(int i = 0; i < crateCoordinates.size(); i++) {
-//                minManDist = 9999;
-//                manDist = 0;
-//
-//                //Filter only for crates not on the goal spot
-//
-//                if (mapData[crateCoordinates.get(i).y][crateCoordinates.get(i).x] == '.')
-//                    continue;
-//
-//                for(int j = 0; j < goalCoordinates.size(); j++) {
-//                    //Filter only for goal spots that are vacant
-//                    if (getBoxCoordinate(goalCoordinates.get(j).x, goalCoordinates.get(j).y, crateCoordinates) != null)
-//                        continue;
-//
-//                    manDist = Math.abs(crateCoordinates.get(i).x - goalCoordinates.get(j).x) + Math.abs(crateCoordinates.get(i).y - goalCoordinates.get(j).y);
-//                    if(minManDist > manDist)
-//                        minManDist = manDist;
-//                    if(minManDist == 1)
-//                        break;
-//                }
-//                heuristicValue += minManDist;
-//            }
-//        }
-//
-//        return heuristicValue;
-//    }
+    /**
+     * compare function for priority queue
+     * currently compares heuristic value only
+     * -1 means it gets put in front
+     * 1 means it gets put in the back
+     * idk what 0 means rn
+     */
+    public int compare(State s1, State s2) {
+        /*
+        double finalCost1 = s1.getMoveCost() + s1.getHeuristicValue() * 1.5;
+        double finalCost2 = s2.getMoveCost() + s2.getHeuristicValue() * 1.5;
+        
+        if (finalCost1 < finalCost2) {
+            return -1;
+        }
+        else if (finalCost1 > finalCost2) {
+            return 1;
+        }
+        else if (finalCost1 == finalCost2) {
+            if (s1.getHeuristicValue() < s2.getHeuristicValue())
+                return -1;
+            else
+                return 1;
+        }
+        */
+        
+        if (s1.getMoveCost() < s2.getMoveCost()) { 
+            return -1;
+        }
+        else if (s1.getMoveCost() > s2.getMoveCost()) {
+            return 1;
+        }
+        else {
+            if (s1.getHeuristicValue() < s2.getHeuristicValue()) {
+                return -1;
+            }
+            else {
+                return 1;
+            }
+        }
+        
+        /*
+        if (s1.getMoveCost() < s2.getMoveCost())
+            return -1;
+        else if (s1.getMoveCost() == s2.getMoveCost() && s1.getHeuristicValue() < s2.getHeuristicValue())
+            return -1;
+        else if (s1.getMoveCost() > s2.getMoveCost())
+            return 1;
+        else if (s1.getMoveCost() == s2.getMoveCost() && s1.getHeuristicValue() > s2.getHeuristicValue())
+            return 1;
+        */
+        // return 0;
+    }
 }
