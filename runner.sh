@@ -7,7 +7,7 @@ MAPS_DIR="maps"
 for map_file in "$MAPS_DIR"/*.txt; do
   map_name=$(basename "$map_file" .txt)
 
-  echo "Running map: $map_name"
+  echo -e "\nRunning map: $map_name"
   java -classpath out main.Driver "$map_name" bot
 done
 
