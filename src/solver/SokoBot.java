@@ -16,9 +16,11 @@ public class SokoBot {
     Scanner scanner = new Scanner(System.in);
     Heuristic calculator = new Heuristic();
     int input = 0;
+    int totalStates = 0;
 
     // Where all the states will be added
     ArrayList<State> statesList = new ArrayList<>();
+    int moveCost = 0;
     PriorityQueue<State> statequeue = new PriorityQueue<State>(30000, new Heuristic());
 
     // For making duplicate checking easier
@@ -52,11 +54,11 @@ public class SokoBot {
     }
 
     // Create the initial state
-    State initialState = new State(mapData, itemsData, initialPosition, width, height, goalCoordinates);
+    State initialState = new State(mapData, itemsData, initialPosition, width, height, goalCoordinates, 0);
     initialState.setBoxCoordinates(boxCoordinates);
     initialState.setGoalCoordinates(goalCoordinates);
 
-    initialState.setHeuristicValue(calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates)));
+    initialState.setHeuristicValue(calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, initialPosition, initialState.countGoals(goalCoordinates)));
 
     statesList.add(initialState);
     statequeue.add(initialState);
@@ -143,16 +145,28 @@ public class SokoBot {
 
     while(!statequeue.isEmpty()) {
       State currState = statequeue.poll();
-      // System.out.println("SELECTED STATE: " + currState.toString());
-      // System.out.println(statequeue);
+      System.out.println("SELECTED STATE: " + currState.toString());
+      //System.out.println(statequeue);
 
-      ArrayList<State> newStates = currState.createStates(goalCoordinates);
+      ArrayList<State> newStates = currState.createStates(goalCoordinates, currState.getHeuristicValue());
+      //System.out.println("Current States " + totalStates);
+      totalStates++;
 
+      if (totalStates > 22000) {
+          System.out.println(currState.getPath());
+          System.out.println("Path Cost: " + currState.getMoveCost());
+          System.out.println("Total States: " + totalStates);
+          return currState.getPath();
+      }
+      
       // Check if any of the new states is a goal state
       for (State newState : newStates) {
         // If all goals are filled, return the path
         if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
           System.out.println("Goal state reached!");
+          System.out.println(newState.getPath());
+          System.out.println("Path Cost: " + newState.getMoveCost());
+            System.out.println("Total States: " + totalStates);
           return newState.getPath();
         }
 
@@ -191,6 +205,8 @@ public class SokoBot {
         if (!existing) {
           statequeue.add(newState);
           statesList.add(newState);
+          //if (totalStates > 10000)
+            //System.out.println(statequeue);
         }
       }
     }

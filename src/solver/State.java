@@ -21,6 +21,7 @@ public class State {
     // keeps track of the paths
     private StringBuilder path;
     // to be calculated
+    private double moveCost = 0;
     private double heuristicValue = 0.00;
 
     // Directions: Up, Down, Left, Right
@@ -34,7 +35,7 @@ public class State {
     private char[] DIRECTION_CHARS = {'u', 'd', 'l', 'r'};
 
     // Constructor
-    public State(char[][] mapData, char[][] itemsData, Coordinate playerPosition, int width, int height, ArrayList<Coordinate> goalCoordinates) {
+    public State(char[][] mapData, char[][] itemsData, Coordinate playerPosition, int width, int height, ArrayList<Coordinate> goalCoordinates, double prevMoveCost) {
         this.mapData = mapData;
         this.itemsData = itemsData;
         this.playerPosition = playerPosition;
@@ -42,6 +43,7 @@ public class State {
         this.height = height;
         this.path = new StringBuilder();
         this.goals = countGoals(goalCoordinates);
+        this.moveCost = prevMoveCost;
     }
 
     public Coordinate getPlayerPosition() {
@@ -70,6 +72,11 @@ public class State {
         this.heuristicValue = heuristicValue;
     }
 
+    // MOVE COST
+    public double getMoveCost() {
+        return moveCost;
+    }
+    
     // Set initial box coordinates
     public void setBoxCoordinates(ArrayList<Coordinate> initialBoxCoordinates) {
         this.boxCoordinates = new ArrayList<>();
@@ -132,7 +139,7 @@ public class State {
 
     // where new states are made, it returns an ArrayList which will later be checked for a winning path
     // before being added to the statesList
-    public ArrayList<State> createStates(ArrayList<Coordinate> goalCoordinates) {
+    public ArrayList<State> createStates(ArrayList<Coordinate> goalCoordinates, double currCost) {
         ArrayList<State> validStates = new ArrayList<>();
         int playerX = playerPosition.x;
         int playerY = playerPosition.y;
@@ -140,9 +147,12 @@ public class State {
         // a for loop for each direction
         // note how continue is being used to skip when a state is a dud
         for (int i = 0; i < DIRECTIONS.length; i++) {
+            int currMoveCost = 0;
             int[] direction = DIRECTIONS[i];
             int newX = playerX + direction[0];
             int newY = playerY + direction[1];
+            
+            Coordinate newPlayerPosition = new Coordinate(newX, newY);
 
             // Avoid out of bounds
             if (newX < 0 || newX >= width || newY < 0 || newY >= height) continue;
@@ -164,6 +174,13 @@ public class State {
                 // Deadlock check
                 if (deadlockCheck(boxNewX, boxNewY, goalCoordinates, mapData, itemsData)) continue;
 
+                // Goal check
+                if (mapData[boxNewY][boxNewX] == '.')
+                    currMoveCost = 0;
+                    // currMoveCost += 0;
+                else
+                    currMoveCost = 2;
+                
                 // Create a new state with the box and player moved
                 char[][] newItemsData = copyMap(itemsData);
 
@@ -192,21 +209,24 @@ public class State {
                 }
 
                 // Create a new state with the updated boxCoordinates
-                State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates);
+                State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates, currMoveCost + currCost);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
-                newState.setHeuristicValue(heuristicValue);
+                // newState.setHeuristicValue(heuristicValue);
                 // Test for git change AAAAAAAAAAAAAAAA
 
-                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, newState.countGoals(goalCoordinates));
-
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, newBoxCoordinates, newPlayerPosition, newState.countGoals(goalCoordinates));
+                heuristicValue -= goals;
+                
                 newState.setHeuristicValue(heuristicValue);
 
                 // Append the direction to the path
                 newState.setPath(new StringBuilder(this.getPath()).append(DIRECTION_CHARS[i]));
                 validStates.add(newState);
 
-            } else if (itemsData[newY][newX] == ' ') {
+            }
+            else if (itemsData[newY][newX] == ' ') {
+                currMoveCost = 3;
                 // Create a new state when the player moves to an empty space
                 char[][] newItemsData = copyMap(itemsData);
 
@@ -221,12 +241,13 @@ public class State {
                 }
 
                 // Create a new state with the same boxCoordinates
-                State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates);
+                State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates, currMoveCost + currCost);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
 
-                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, newState.countGoals(goalCoordinates));
-
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, newBoxCoordinates, newPlayerPosition, newState.countGoals(goalCoordinates));
+                heuristicValue -= goals;
+                
                 newState.setHeuristicValue(heuristicValue);
 
                 // Append the direction to the path
@@ -291,7 +312,9 @@ public class State {
         }
         player = player + box;
         double d = getHeuristicValue();
-        player = player + " " + d;
+        double m = getMoveCost();
+        player = player + " M:" + m;
+        player = player + " H:" + d;
 
         return player;
     }

@@ -8,7 +8,7 @@ import java.util.Comparator;
 
 public class Heuristic implements Comparator<State> {
     //Calculate sum of Manhattan Distances between each crate to its NEAREST goal spot
-    public static double calcManDist(char[][] mapData, char[][] itemsData, int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, int goals) {
+    public static double calcManDist(char[][] mapData, char[][] itemsData, int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, Coordinate playerPosition, int goals) {
         double heuristicValue = 0;
 
         //Already in a goal state
@@ -16,10 +16,13 @@ public class Heuristic implements Comparator<State> {
             return 0;
         else {
             //iterate for each coordinate of crate to each coordinate of goal spot
-            int minManDist = 9999;
+            int minManDist = Integer.MAX_VALUE;
             int manDist = 0;
+            
+            int minCrateDist = Integer.MAX_VALUE;
+            int crateDist = 0;
             for(int i = 0; i < crateCoordinates.size(); i++) {
-                minManDist = 9999;
+                minManDist = Integer.MAX_VALUE;
                 manDist = 0;
 
                 //Filter only for crates not on the goal spot
@@ -38,9 +41,15 @@ public class Heuristic implements Comparator<State> {
                         break;
                 }
                 heuristicValue += minManDist;
+                
+                crateDist = Math.abs(crateCoordinates.get(i).x - playerPosition.x + Math.abs(crateCoordinates.get(i).y - playerPosition.y));
+                
+                if (minCrateDist > crateDist)
+                    minCrateDist = crateDist;
             }
+            heuristicValue += (0.75 * minCrateDist);
         }
-
+        
         return heuristicValue;
     }
 
@@ -82,10 +91,49 @@ public class Heuristic implements Comparator<State> {
      * idk what 0 means rn
      */
     public int compare(State s1, State s2) {
-        if (s1.getHeuristicValue() < s2.getHeuristicValue())
+        /*
+        double finalCost1 = s1.getMoveCost() + s1.getHeuristicValue() * 1.5;
+        double finalCost2 = s2.getMoveCost() + s2.getHeuristicValue() * 1.5;
+        
+        if (finalCost1 < finalCost2) {
             return -1;
-        else if (s1.getHeuristicValue() > s2.getHeuristicValue())
+        }
+        else if (finalCost1 > finalCost2) {
             return 1;
-        return 0;
+        }
+        else if (finalCost1 == finalCost2) {
+            if (s1.getHeuristicValue() < s2.getHeuristicValue())
+                return -1;
+            else
+                return 1;
+        }
+        */
+        
+        if (s1.getMoveCost() < s2.getMoveCost()) { 
+            return -1;
+        }
+        else if (s1.getMoveCost() > s2.getMoveCost()) {
+            return 1;
+        }
+        else {
+            if (s1.getHeuristicValue() < s2.getHeuristicValue()) {
+                return -1;
+            }
+            else {
+                return 1;
+            }
+        }
+        
+        /*
+        if (s1.getMoveCost() < s2.getMoveCost())
+            return -1;
+        else if (s1.getMoveCost() == s2.getMoveCost() && s1.getHeuristicValue() < s2.getHeuristicValue())
+            return -1;
+        else if (s1.getMoveCost() > s2.getMoveCost())
+            return 1;
+        else if (s1.getMoveCost() == s2.getMoveCost() && s1.getHeuristicValue() > s2.getHeuristicValue())
+            return 1;
+        */
+        // return 0;
     }
 }
