@@ -32,6 +32,9 @@ public class State {
     };
 
     private char[] DIRECTION_CHARS = {'u', 'd', 'l', 'r'};
+    private int EMPTY_MOVE = 15;
+    private int BOX_MOVE = 3;
+    private int GOAL_MOVE = 0;
 
     // Constructor
     public State(char[][] mapData, char[][] itemsData, Coordinate playerPosition, int width, int height, ArrayList<Coordinate> goalCoordinates) {
@@ -196,7 +199,7 @@ public class State {
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
 
-                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, newBoxCoordinates, newState.countGoals(goalCoordinates), newState.getPath());
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, newBoxCoordinates, newState.countGoals(goalCoordinates), newState.getPath(), new Coordinate(newX, newY));
 
                 newState.setHeuristicValue(heuristicValue);
 
@@ -223,7 +226,7 @@ public class State {
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
 
-                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, newState.countGoals(goalCoordinates), newState.getPath());
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, newState.countGoals(goalCoordinates), newState.getPath(), new Coordinate(newX, newY));
 
                 newState.setHeuristicValue(heuristicValue);
 
