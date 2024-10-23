@@ -2,6 +2,7 @@ package solver;
 
 import java.util.Scanner;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.PriorityQueue;
 
 // random selector
@@ -9,6 +10,7 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
+// import javafx.util.Pair;
 
 public class SokoBot {
 
@@ -154,8 +156,7 @@ public class SokoBot {
       //System.out.println("Current States " + totalStates);
       totalStates++;
       
-      
-      if (totalStates > 42000) {
+      if (totalStates > 60000) {
           System.out.println(currState.getPath());
           System.out.println("Path Cost: " + currState.getMoveCost());
           System.out.println("Total States: " + totalStates);
@@ -175,11 +176,15 @@ public class SokoBot {
         }
 
         boolean existing = false;
-        String currBoxCoords = toBoxCoords(width, height, newState.getItemsData());
+        String currBoxCoords = toBoxCoords(width, height, newState.getItemData());
           //System.out.println("Current State: " + newState.toString());
           //System.out.println("Box Coord of State: " + currBoxCoords);
         
-          
+        //String currBoxCoords = toBoxCoords(width, height, newState);
+        //System.out.println("Current State: " + newState.toString());
+        //System.out.println("Box Coord of State: " + currBoxCoords);
+        
+        
         if (boxCoords.contains(currBoxCoords)) {
             //System.out.println("********** this exists !! ***************");
             // System.out.println(existingState.toString());
@@ -337,7 +342,33 @@ public class SokoBot {
               }
           }
       }
-      return playerCoords + '|' + boxCoords.toString();
+      return playerCoords + boxCoords.toString();
+  }
+  
+  private String toBoxCoords(int width, int height, State newState) {
+      Coordinate playerPosition = newState.getPlayerPosition();
+      String playerCoords = Integer.toString(playerPosition.y * width + playerPosition.x);
+      StringBuilder boxCoords = new StringBuilder();
+      ArrayList<Coordinate> boxCoordinates = newState.getBoxCoordinates();
+      ArrayList<Integer> boxCoordinatesTranslated = new ArrayList<>();
+      
+      for (int i = 0; i < boxCoordinates.size(); i++) {
+          boxCoordinatesTranslated.add(boxCoordinates.get(i).y * width + boxCoordinates.get(i).x);
+      }
+      
+      while (boxCoordinatesTranslated.size() > 0) {
+          int min = Collections.min(boxCoordinatesTranslated);
+          boxCoords.append(min);
+          boxCoordinatesTranslated.remove(boxCoordinatesTranslated.indexOf(min));
+      }
+      /*
+      for (int i = 0; i < boxCoordinatesTranslated.size(); i++) {
+          boxCoords.append(boxCoordinatesTranslated.get(i));
+      }
+      */
+      // System.out.println("boxCoordinatesTranslated " + boxCoordinatesTranslated);
+      
+      return playerCoords + boxCoords.toString();
   }
 }
 

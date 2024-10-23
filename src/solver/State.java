@@ -213,7 +213,7 @@ public class State {
                 }
 
                 // Create a new state with the updated boxCoordinates
-                State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates, currMoveCost + currCost);
+                State newState = new State(mapData, newItemsData, newPlayerPosition, width, height, goalCoordinates, currMoveCost + currCost);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
                 // newState.setHeuristicValue(heuristicValue);
@@ -245,7 +245,7 @@ public class State {
                 }
 
                 // Create a new state with the same boxCoordinates
-                State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates, currMoveCost + currCost);
+                State newState = new State(mapData, newItemsData, newPlayerPosition, width, height, goalCoordinates, currMoveCost + currCost);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
 
