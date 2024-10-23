@@ -15,6 +15,7 @@ public class SokoBot {
     Scanner scanner = new Scanner(System.in);
     Heuristic calculator = new Heuristic();
     int input = 0;
+    int totalState = 0;
 
     // Where all the states will be added
     ArrayList<State> statesList = new ArrayList<>();
@@ -50,11 +51,13 @@ public class SokoBot {
     }
 
     // Create the initial state
-    State initialState = new State(mapData, itemsData, initialPosition, width, height, goalCoordinates);
+    State initialState = new State(mapData, initialPosition, width, height, goalCoordinates);
     initialState.setBoxCoordinates(boxCoordinates);
     initialState.setGoalCoordinates(goalCoordinates);
+    int goalCount = initialState.countGoals(goalCoordinates);
+    initialState.setGoals(goalCount);
 
-    initialState.setHeuristicValue(calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates)));
+    initialState.setHeuristicValue(calculator.calcManDist(mapData, width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates), initialState.getPath(), initialPosition));
 
     statesList.add(initialState);
 
@@ -80,6 +83,7 @@ public class SokoBot {
         selectedState.setVisited();
 
         System.out.printf("SELECTED STATE: %d\n", input);
+        totalState++;
 
         ArrayList<State> newStates = selectedState.createStates(goalCoordinates);
 
@@ -88,6 +92,7 @@ public class SokoBot {
           // If all goals are filled, return the path
           if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
             System.out.println("Goal state reached!");
+            System.out.println("States Visited: " + totalState);
             return newState.getPath();
           }
 
@@ -98,7 +103,6 @@ public class SokoBot {
             // Get player positions
             Coordinate existingPosition = existingState.getPlayerPosition();
             Coordinate newPosition = newState.getPlayerPosition();
-
             // Check if the player positions are the same using x and y values
             if (existingPosition.x == newPosition.x && existingPosition.y == newPosition.y) {
               boolean sameBoxes = true;
