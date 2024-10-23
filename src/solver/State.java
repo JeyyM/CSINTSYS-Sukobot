@@ -3,8 +3,7 @@ package solver;
 import java.util.ArrayList;
 
 public class State {
-    private char[][] mapData;
-
+    private char[][] mapData = GlobalMap.getMap();
     private Heuristic calculator = new Heuristic();
 
     // player position is kept as a coordinate so that getting the position for the states is faster
@@ -36,8 +35,7 @@ public class State {
     private int GOAL_MOVE = 0;
 
     // Constructor
-    public State(char[][] mapData, Coordinate playerPosition, int width, int height, ArrayList<Coordinate> goalCoordinates) {
-        this.mapData = mapData;
+    public State(Coordinate playerPosition, int width, int height, ArrayList<Coordinate> goalCoordinates) {
         this.playerPosition = playerPosition;
         this.width = width;
         this.height = height;
@@ -157,7 +155,6 @@ public class State {
 
     // where new states are made, it returns an ArrayList which will later be checked for a winning path
     // before being added to the statesList
-
     public ArrayList<State> createStates(ArrayList<Coordinate> goalCoordinates) {
         ArrayList<State> validStates = new ArrayList<>();
         int playerX = playerPosition.x;
@@ -208,16 +205,15 @@ public class State {
                 }
 
                 // Create a new state with the updated boxCoordinates
-                State newState = new State(mapData, new Coordinate(newX, newY), width, height, goalCoordinates);
+                State newState = new State(new Coordinate(newX, newY), width, height, goalCoordinates);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
                 int goalCount = newState.countGoals(goalCoordinates);
                 newState.setGoals(goalCount);
 
-                double heuristicValue = calculator.calcManDist(mapData, width, height, goalCoordinates, newBoxCoordinates, goalCount, newState.getPath(), new Coordinate(newX, newY));
+                double heuristicValue = calculator.calcManDist(width, height, goalCoordinates, newBoxCoordinates, goalCount, newState.getPath(), new Coordinate(newX, newY));
 
                 newState.setHeuristicValue(heuristicValue);
-                // Test for git change AAAAAAAAAAAAAAAA
 
                 // Append the direction to the path
                 newState.setPath(new StringBuilder(this.getPath()).append(DIRECTION_CHARS[i]));
@@ -232,13 +228,13 @@ public class State {
                 }
 
                 // Create a new state with the same boxCoordinates
-                State newState = new State(mapData, new Coordinate(newX, newY), width, height, goalCoordinates);
+                State newState = new State(new Coordinate(newX, newY), width, height, goalCoordinates);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
                 int goalCount = newState.countGoals(goalCoordinates);
                 newState.setGoals(goalCount);
 
-                double heuristicValue = calculator.calcManDist(mapData, width, height, goalCoordinates, boxCoordinates, goalCount, newState.getPath(), new Coordinate(newX, newY));
+                double heuristicValue = calculator.calcManDist(width, height, goalCoordinates, boxCoordinates, goalCount, newState.getPath(), new Coordinate(newX, newY));
 
                 newState.setHeuristicValue(heuristicValue);
 

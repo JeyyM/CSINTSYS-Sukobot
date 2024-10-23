@@ -3,15 +3,10 @@ package solver;
 import java.util.Scanner;
 import java.util.ArrayList;
 
-// random selector
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-
-
 public class SokoBot {
-
   public String solveSokobanPuzzle(int width, int height, char[][] mapData, char[][] itemsData) {
+    GlobalMap.setMap(mapData);
+
     Scanner scanner = new Scanner(System.in);
     Heuristic calculator = new Heuristic();
     int input = 0;
@@ -51,13 +46,13 @@ public class SokoBot {
     }
 
     // Create the initial state
-    State initialState = new State(mapData, initialPosition, width, height, goalCoordinates);
+    State initialState = new State(initialPosition, width, height, goalCoordinates);
     initialState.setBoxCoordinates(boxCoordinates);
     initialState.setGoalCoordinates(goalCoordinates);
     int goalCount = initialState.countGoals(goalCoordinates);
     initialState.setGoals(goalCount);
 
-    initialState.setHeuristicValue(calculator.calcManDist(mapData, width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates), initialState.getPath(), initialPosition));
+    initialState.setHeuristicValue(calculator.calcManDist(width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates), initialState.getPath(), initialPosition));
 
     statesList.add(initialState);
 
@@ -226,7 +221,7 @@ public class SokoBot {
 //
 //    } while (true);
 
-    return "lrlrlrlrlr";
+    return "";
   }
 }
 

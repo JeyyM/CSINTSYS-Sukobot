@@ -7,7 +7,8 @@ import java.util.Collections;
 import java.util.Comparator;
 
 public class Heuristic {
-    public static double calcManDist(char[][] mapData, int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, int goals, String path, Coordinate playerPosition) {
+    public static double calcManDist(int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, int goals, String path, Coordinate playerPosition) {
+        char[][] mapData = GlobalMap.getMap();
         double heuristicValue = 0;
 
         int goalCount = goalCoordinates.size();
