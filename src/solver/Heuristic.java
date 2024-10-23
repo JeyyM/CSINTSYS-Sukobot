@@ -10,35 +10,50 @@ public class Heuristic {
     public static double calcManDist(char[][] mapData, int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, int goals, String path, Coordinate playerPosition) {
         double heuristicValue = 0;
 
-        //Already in a goal state
-        if(goals == goalCoordinates.size())
+        int goalCount = goalCoordinates.size();
+        int boxCount = crateCoordinates.size();
+
+        if (goals == goalCount) {
             return 0;
-        else {
-            //iterate for each coordinate of crate to each coordinate of goal spot
-            int minManDist = 9999;
-            int manDist = 0;
-            for(int i = 0; i < crateCoordinates.size(); i++) {
-                minManDist = 9999;
-                manDist = 0;
+        }
 
-                //Filter only for crates not on the goal spot
-                if (mapData[crateCoordinates.get(i).y][crateCoordinates.get(i).x] == '.')
-                    continue;
+        boolean[] boxBind = new boolean[boxCount];
+        int[] goalMinDist = new int[goalCount];
 
-                for(int j = 0; j < goalCoordinates.size(); j++) {
-                    //Filter only for goal spots that are vacant
-                    if(itemsData[goalCoordinates.get(j).y][goalCoordinates.get(j).x] == '$')
-                        continue;
+        for (int i = 0; i < goalCount; i++) {
+            goalMinDist[i] = Integer.MAX_VALUE;
+        }
 
-                    manDist = Math.abs(crateCoordinates.get(i).x - goalCoordinates.get(j).x) + Math.abs(crateCoordinates.get(i).y - goalCoordinates.get(j).y);
-                    if(minManDist > manDist)
-                        minManDist = manDist;
-                    if(minManDist == 1)
-                        break;
+        for (int i = 0; i < goalCount; i++) {
+            Coordinate goal = goalCoordinates.get(i);
+
+            int minDistance = Integer.MAX_VALUE;
+            int closestBoxInd = -1;
+
+            for (int j = 0; j < boxCount; j++) {
+                if (boxBind[j]) continue;
+
+                Coordinate box = crateCoordinates.get(j);
+                int manDist = Math.abs(box.x - goal.x) + Math.abs(box.y - goal.y);
+
+                if (manDist < minDistance) {
+                    minDistance = manDist;
+                    closestBoxInd = j;
                 }
-                heuristicValue += minManDist;
+            }
+
+            if (closestBoxInd != -1) {
+                boxBind[closestBoxInd] = true;
+                goalMinDist[i] = minDistance;
             }
         }
+
+        for (int i = 0; i < goalCount; i++) {
+            heuristicValue += goalMinDist[i] * 20;
+        }
+
+        heuristicValue += (goals * 0.5);
+        heuristicValue -= path.length() * 0.001;
 
         return heuristicValue;
     }
