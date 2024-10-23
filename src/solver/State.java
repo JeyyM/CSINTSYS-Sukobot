@@ -56,6 +56,7 @@ public class State {
     public boolean getVisited() {
         return visited;
     }
+
     public void setVisited() {
         this.visited = true;
     }
@@ -314,6 +315,7 @@ public class State {
         for(Coordinate b : boxCoordinates) {
             box = box + b.toString() + " ";
         }
+
         player = player + box;
         double d = getHeuristicValue();
         double m = getMoveCost();
