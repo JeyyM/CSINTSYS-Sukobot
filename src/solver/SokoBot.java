@@ -51,13 +51,13 @@ public class SokoBot {
     }
 
     // Create the initial state
-    State initialState = new State(mapData, itemsData, initialPosition, width, height, goalCoordinates);
+    State initialState = new State(mapData, initialPosition, width, height, goalCoordinates);
     initialState.setBoxCoordinates(boxCoordinates);
     initialState.setGoalCoordinates(goalCoordinates);
     int goalCount = initialState.countGoals(goalCoordinates);
     initialState.setGoals(goalCount);
 
-    initialState.setHeuristicValue(calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates), initialState.getPath(), initialPosition));
+    initialState.setHeuristicValue(calculator.calcManDist(mapData, width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates), initialState.getPath(), initialPosition));
 
     statesList.add(initialState);
 
