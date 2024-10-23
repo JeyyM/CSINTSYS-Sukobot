@@ -4,12 +4,6 @@ import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 
-// random selector
-import java.util.HashSet;
-import java.util.Random;
-import java.util.Set;
-
-
 public class SokoBot {
 
   public String solveSokobanPuzzle(int width, int height, char[][] mapData, char[][] itemsData) {
