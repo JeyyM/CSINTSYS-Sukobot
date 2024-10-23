@@ -7,8 +7,19 @@ import java.util.Collections;
 import java.util.Comparator;
 
 public class Heuristic implements Comparator<State> {
+    static char[][] mapData = GlobalMap.getMap();
+
+    public static Coordinate getBoxCoordinate(int x, int y, ArrayList<Coordinate> boxCoordinates) {
+        for (Coordinate box : boxCoordinates) {
+            if (box.x == x && box.y == y) {
+                return box;
+            }
+        }
+        return null;
+    }
+
     //Calculate sum of Manhattan Distances between each crate to its NEAREST goal spot
-    public static double calcManDist(char[][] mapData, char[][] itemsData, int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, Coordinate playerPosition, int goals) {
+    public static double calcManDist(int width, int height, ArrayList<Coordinate> goalCoordinates, ArrayList<Coordinate> crateCoordinates, int goals, String path, Coordinate playerPosition) {
         double heuristicValue = 0;
 
         //Already in a goal state
@@ -31,7 +42,8 @@ public class Heuristic implements Comparator<State> {
 
                 for(int j = 0; j < goalCoordinates.size(); j++) {
                     //Filter only for goal spots that are vacant
-                    if(itemsData[goalCoordinates.get(j).y][goalCoordinates.get(j).x] == '$')
+//                    if(itemsData[goalCoordinates.get(j).y][goalCoordinates.get(j).x] == '$')
+                    if (getBoxCoordinate(goalCoordinates.get(j).x, goalCoordinates.get(j).y, crateCoordinates) != null)
                         continue;
 
                     manDist = Math.abs(crateCoordinates.get(i).x - goalCoordinates.get(j).x) + Math.abs(crateCoordinates.get(i).y - goalCoordinates.get(j).y);
@@ -52,27 +64,6 @@ public class Heuristic implements Comparator<State> {
         
         return heuristicValue;
     }
-
-    //Sort heuristic values of ArrayList of states using bubble sort
-//    public static void sortNonDecreasing(ArrayList<State> stateList) {
-//        State temp;
-//        boolean swapped;
-//
-//        for(int i = 0; i < stateList.size() - 1; i++) {
-//            swapped = false;
-//            for(int j = 0; j < stateList.size() - i - 1; j++) {
-//                if(stateList.get(j).getHeuristicValue() > stateList.get(j + 1).getHeuristicValue()) {
-//                    temp = stateList.get(j);
-//                    stateList.set(j, stateList.get(j + 1));
-//                    stateList.set(j + 1, temp);
-//                    swapped = true;
-//                }
-//            }
-//
-//            if(swapped == false)
-//                break;
-//        }
-//    }
 
     public static void sortDescending(ArrayList<State> stateList) {
         Collections.sort(stateList, new Comparator<State>() {
