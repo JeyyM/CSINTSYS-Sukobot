@@ -4,6 +4,7 @@ import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.PriorityQueue;
+import java.util.HashMap;
 
 // random selector
 import java.util.HashSet;
@@ -21,7 +22,7 @@ public class SokoBot {
     int totalStates = 0;
 
     // Where all the states will be added
-    ArrayList<String> boxCoords = new ArrayList<>();
+    HashMap<String, Boolean> boxCoords = new HashMap<String, Boolean>();
     ArrayList<State> statesList = new ArrayList<>();
     int moveCost = 0;
     PriorityQueue<State> statequeue = new PriorityQueue<State>(30000, new Heuristic());
@@ -149,19 +150,19 @@ public class SokoBot {
     while(!statequeue.isEmpty()) {
       State currState = statequeue.poll();
       
-      System.out.println("SELECTED STATE: " + currState.toString());
+      // System.out.println("SELECTED STATE: " + currState.toString());
       //System.out.println(statequeue);
 
       ArrayList<State> newStates = currState.createStates(goalCoordinates, currState.getHeuristicValue());
       //System.out.println("Current States " + totalStates);
       totalStates++;
-      
+      /*
       if (totalStates > 60000) {
           System.out.println(currState.getPath());
           System.out.println("Path Cost: " + currState.getMoveCost());
           System.out.println("Total States: " + totalStates);
           return currState.getPath();
-      }
+      }*/
       
       
       // Check if any of the new states is a goal state
@@ -176,7 +177,7 @@ public class SokoBot {
         }
 
         boolean existing = false;
-        String currBoxCoords = toBoxCoords(width, height, newState.getItemData());
+        String currBoxCoords = toBoxCoords(width, height, newState.getItemsData());
           //System.out.println("Current State: " + newState.toString());
           //System.out.println("Box Coord of State: " + currBoxCoords);
         
@@ -185,7 +186,7 @@ public class SokoBot {
         //System.out.println("Box Coord of State: " + currBoxCoords);
         
         
-        if (boxCoords.contains(currBoxCoords)) {
+        if (boxCoords.get(currBoxCoords) != null) {
             //System.out.println("********** this exists !! ***************");
             // System.out.println(existingState.toString());
             existing = true;
@@ -234,7 +235,7 @@ public class SokoBot {
         if (!existing) {
             statequeue.add(newState);
             statesList.add(newState);
-            boxCoords.add(currBoxCoords);
+            boxCoords.put(currBoxCoords, true);
               //System.out.println("boxCoords length: " + boxCoords.size());
             //if (totalStates > 10000)
               //System.out.println(statequeue);
