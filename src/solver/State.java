@@ -56,6 +56,10 @@ public class State {
     public void setPath(StringBuilder newPath) {
         this.path = newPath;
     }
+    
+    public char[][] getItemsData() {
+        return this.itemsData;
+    }
 
     public boolean getVisited() {
         return visited;

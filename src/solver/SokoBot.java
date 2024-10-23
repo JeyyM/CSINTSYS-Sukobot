@@ -19,6 +19,7 @@ public class SokoBot {
     int totalStates = 0;
 
     // Where all the states will be added
+    ArrayList<String> boxCoords = new ArrayList<>();
     ArrayList<State> statesList = new ArrayList<>();
     int moveCost = 0;
     PriorityQueue<State> statequeue = new PriorityQueue<State>(30000, new Heuristic());
@@ -145,19 +146,22 @@ public class SokoBot {
 
     while(!statequeue.isEmpty()) {
       State currState = statequeue.poll();
+      
       System.out.println("SELECTED STATE: " + currState.toString());
       //System.out.println(statequeue);
 
       ArrayList<State> newStates = currState.createStates(goalCoordinates, currState.getHeuristicValue());
       //System.out.println("Current States " + totalStates);
       totalStates++;
-
-      if (totalStates > 22000) {
+      
+      
+      if (totalStates > 42000) {
           System.out.println(currState.getPath());
           System.out.println("Path Cost: " + currState.getMoveCost());
           System.out.println("Total States: " + totalStates);
           return currState.getPath();
       }
+      
       
       // Check if any of the new states is a goal state
       for (State newState : newStates) {
@@ -171,8 +175,19 @@ public class SokoBot {
         }
 
         boolean existing = false;
-
+        String currBoxCoords = toBoxCoords(width, height, newState.getItemsData());
+          //System.out.println("Current State: " + newState.toString());
+          //System.out.println("Box Coord of State: " + currBoxCoords);
+        
+          
+        if (boxCoords.contains(currBoxCoords)) {
+            //System.out.println("********** this exists !! ***************");
+            // System.out.println(existingState.toString());
+            existing = true;
+        }
+          
         // Check if the new state is a duplicate of any existing state
+        /*
         for (State existingState : statesList) {
           // Get player positions
           Coordinate existingPosition = existingState.getPlayerPosition();
@@ -180,8 +195,9 @@ public class SokoBot {
 
           // Check if the player positions are the same using x and y values
           if (existingPosition.x == newPosition.x && existingPosition.y == newPosition.y) {
-            boolean sameBoxes = true;
-
+            //boolean sameBoxes = true;
+            
+            /*
             // Compare each box coordinate in the existing with the new state
             for (int i = 0; i < existingState.getBoxCoordinates().size(); i++) {
               Coordinate box = existingState.getBoxCoordinates().get(i);
@@ -195,18 +211,28 @@ public class SokoBot {
 
             // If all boxes match, mark the state as existing
             if (sameBoxes) {
+                System.out.println("********** this exists !! ***************");
+                System.out.println(existingState.toString());
               existing = true;
               break;
             }
+            
+            
+            
+            
+            
           }
         }
+        */
 
         // If not a duplicate, add the new state to the statesList
         if (!existing) {
-          statequeue.add(newState);
-          statesList.add(newState);
-          //if (totalStates > 10000)
-            //System.out.println(statequeue);
+            statequeue.add(newState);
+            statesList.add(newState);
+            boxCoords.add(currBoxCoords);
+              //System.out.println("boxCoords length: " + boxCoords.size());
+            //if (totalStates > 10000)
+              //System.out.println(statequeue);
         }
       }
     }
@@ -296,6 +322,22 @@ public class SokoBot {
 //    } while (true);
 
     return "lrlrlrlrlr";
+  }
+  
+  private String toBoxCoords(int width, int height, char[][] itemsData) {
+      StringBuilder boxCoords = new StringBuilder();
+      String playerCoords = new String();
+      for (int i = 0; i < height; i++) {
+          for (int j = 0; j < width; j++) {
+              if (itemsData[i][j] == '$') {
+                  boxCoords.append(Integer.toString(i * width + j));
+              }
+              if (itemsData[i][j] == '@') {
+                  playerCoords = Integer.toString(i * width + j);
+              }
+          }
+      }
+      return playerCoords + '|' + boxCoords.toString();
   }
 }
 

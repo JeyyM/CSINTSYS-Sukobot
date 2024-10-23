@@ -42,7 +42,7 @@ public class Heuristic implements Comparator<State> {
                 }
                 heuristicValue += minManDist;
                 
-                crateDist = Math.abs(crateCoordinates.get(i).x - playerPosition.x + Math.abs(crateCoordinates.get(i).y - playerPosition.y));
+                crateDist = Math.abs(crateCoordinates.get(i).x - playerPosition.x) + Math.abs(crateCoordinates.get(i).y - playerPosition.y);
                 
                 if (minCrateDist > crateDist)
                     minCrateDist = crateDist;
