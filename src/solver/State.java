@@ -44,7 +44,7 @@ public class State {
         this.width = width;
         this.height = height;
         this.path = new StringBuilder();
-        this.goals = countGoals(goalCoordinates);
+//        this.goals = countGoals(goalCoordinates);
     }
 
     public Coordinate getPlayerPosition() {
@@ -95,16 +95,26 @@ public class State {
     // Count number of boxes on goal positions
     public int countGoals(ArrayList<Coordinate> goalCoordinates) {
         int goalSpots = 0;
+
         for (Coordinate goal : goalCoordinates) {
-            if (itemsData[goal.y][goal.x] == '$') {
-                goalSpots++;
+            for (Coordinate box : boxCoordinates) {
+                if (goal.x == box.x && goal.y == box.y) {
+                    goalSpots++;
+                    break;
+                }
             }
         }
+
         return goalSpots;
     }
 
+
     public int getGoals(){
         return this.goals;
+    }
+
+    public void setGoals(int newGoals){
+        this.goals = newGoals;
     }
 
     // where new states are made, it returns an ArrayList which will later be checked for a winning path
@@ -198,8 +208,10 @@ public class State {
                 State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
+                int goalCount = newState.countGoals(goalCoordinates);
+                newState.setGoals(goalCount);
 
-                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, newBoxCoordinates, newState.countGoals(goalCoordinates), newState.getPath(), new Coordinate(newX, newY));
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, newBoxCoordinates, goalCount, newState.getPath(), new Coordinate(newX, newY));
 
                 newState.setHeuristicValue(heuristicValue);
 
@@ -225,8 +237,10 @@ public class State {
                 State newState = new State(mapData, newItemsData, new Coordinate(newX, newY), width, height, goalCoordinates);
                 newState.setBoxCoordinates(newBoxCoordinates);
                 newState.setGoalCoordinates(this.goalCoordinates);
+                int goalCount = newState.countGoals(goalCoordinates);
+                newState.setGoals(goalCount);
 
-                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, newState.countGoals(goalCoordinates), newState.getPath(), new Coordinate(newX, newY));
+                double heuristicValue = calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, goalCount, newState.getPath(), new Coordinate(newX, newY));
 
                 newState.setHeuristicValue(heuristicValue);
 

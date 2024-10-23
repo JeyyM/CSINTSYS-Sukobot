@@ -54,6 +54,8 @@ public class SokoBot {
     State initialState = new State(mapData, itemsData, initialPosition, width, height, goalCoordinates);
     initialState.setBoxCoordinates(boxCoordinates);
     initialState.setGoalCoordinates(goalCoordinates);
+    int goalCount = initialState.countGoals(goalCoordinates);
+    initialState.setGoals(goalCount);
 
     initialState.setHeuristicValue(calculator.calcManDist(mapData, itemsData, width, height, goalCoordinates, boxCoordinates, initialState.countGoals(goalCoordinates), initialState.getPath(), initialPosition));
 
