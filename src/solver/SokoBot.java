@@ -76,10 +76,10 @@ public class SokoBot {
             // Checks for a winning state
             for (State newState : newStates) {
                 if (newState.countGoals(goalCoordinates) == goalCoordinates.size()) {
-                    System.out.println("Goal state reached!");
-                    System.out.println(newState.getPath());
-                    System.out.println("Path Cost: " + newState.getMoveCost());
-                    System.out.println("Total States: " + totalStates);
+                    // System.out.println("Goal state reached!");
+                    // System.out.println(newState.getPath());
+                    // System.out.println("Path Cost: " + newState.getMoveCost());
+                    // System.out.println("Total States: " + totalStates);
                     return newState.getPath();
                 }
 
