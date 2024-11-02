@@ -42,7 +42,7 @@ public class Heuristic implements Comparator<State> {
 
                 for(int j = 0; j < goalCoordinates.size(); j++) {
                     //Filter only for goal spots that are vacant
-//                    if(itemsData[goalCoordinates.get(j).y][goalCoordinates.get(j).x] == '$')
+                    //if(itemsData[goalCoordinates.get(j).y][goalCoordinates.get(j).x] == '$')
                     if (getBoxCoordinate(goalCoordinates.get(j).x, goalCoordinates.get(j).y, crateCoordinates) != null)
                         continue;
 

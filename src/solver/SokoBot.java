@@ -12,17 +12,13 @@ public class SokoBot {
         // Class for calculating the heurstic
         Heuristic calculator = new Heuristic();
 
-        int input = 0;
         int totalStates = 0;
 
         // Used for A* calculation on move cost
-        int moveCost = 0;
-
-        // Where all the states will be added
-        ArrayList<State> statesList = new ArrayList<>();
+        // int moveCost = 0;
 
         // Uses a priority queue to track the lowest heuristics
-        PriorityQueue<State> statequeue = new PriorityQueue<State>(30000, new Heuristic());
+        PriorityQueue<State> statequeue = new PriorityQueue<State>(3000000, new Heuristic());
 
         //Used for faster duplicate checking
         // Find the initial player position
@@ -65,7 +61,6 @@ public class SokoBot {
 
         initialState.setHeuristicValue(calculator.calcManDist(width, height, goalCoordinates, boxCoordinates, goalCount, initialState.getPath(), initialPosition));
 
-        statesList.add(initialState);
         statequeue.add(initialState);
 
         // Bot loop
@@ -98,7 +93,6 @@ public class SokoBot {
                 // if it is a valid state, add it to priority queue and list of states
                 if (!existing) {
                     statequeue.add(newState);
-                    statesList.add(newState);
                     boxCoords.put(currBoxCoords, true);
                 }
             }
