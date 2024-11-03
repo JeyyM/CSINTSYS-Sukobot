@@ -77,16 +77,20 @@ public class Heuristic implements Comparator<State> {
 
 
     public int compare(State s1, State s2) {
-        if (s1.getMoveCost() < s2.getMoveCost()) { 
+        double finalCost1 = s1.getMoveCost();
+        double finalCost2 = s2.getMoveCost();
+        
+        if (finalCost1 < finalCost2) {
             return -1;
-        } else if (s1.getMoveCost() > s2.getMoveCost()) {
+        }
+        else if (finalCost1 > finalCost2) {
             return 1;
-        } else {
-            if (s1.getHeuristicValue() < s2.getHeuristicValue()) {
+        }
+        else {
+            if (s1.getHeuristicValue() < s2.getHeuristicValue())
                 return -1;
-            } else {
+            else
                 return 1;
-            }
         }
     }
 }
